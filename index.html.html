@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RadioTrack Pro - Zainudin IT BMC</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .table-responsive::-webkit-scrollbar,
+        .custom-scroll::-webkit-scrollbar { 
+            width: 6px;
+            height: 6px; 
+        }
+        .table-responsive::-webkit-scrollbar-track,
+        .custom-scroll::-webkit-scrollbar-track { 
+            background: #f1f5f9; 
+        }
+        .table-responsive::-webkit-scrollbar-thumb,
+        .custom-scroll::-webkit-scrollbar-thumb { 
+            background: #cbd5e1; 
+            border-radius: 4px; 
+        }
+        .table-responsive::-webkit-scrollbar-thumb:hover,
+        .custom-scroll::-webkit-scrollbar-thumb:hover { 
+            background: #94a3b8; 
+        }
+        
+        /* Utility Board Size Zoom Preset */
+        .board-size-compact { zoom: 90%; }
+        .board-size-normal { zoom: 100%; }
+        .board-size-large { zoom: 110%; }
+        
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white !important; color: black !important; }
+            .print-card { border: 1px solid #ccc !important; box-shadow: none !important; }
+        }
+        .print-only { display: none; }
+    </style>
+</head>
+<body class="h-full font-sans text-slate-800 flex flex-col">
+
+    <!-- ==================== HAK CIPTA WEB HEADER (TOP BANNER) ==================== -->
+    <div class="bg-slate-950 text-slate-400 text-[11px] py-1.5 px-4 text-center border-b border-slate-800 flex justify-between items-center no-print">
+        <div class="flex items-center space-x-2 mx-auto sm:mx-0">
+            <i class="fa-solid fa-copyright text-amber-500"></i>
+            <span class="font-medium">Hak Cipta Web & Sistem oleh: <strong class="text-amber-400 font-bold">Zainudin IT BMC</strong> &copy; 2026</span>
+        </div>
+        <div class="hidden sm:block text-slate-500 text-[10px]">
+            PT. BANDANG MINING COAL — Integrated Radio Management System
+        </div>
+    </div>
+
+    <!-- ==================== SCREEN LOGIN UTAMA ==================== -->
+    <div id="login-screen" class="fixed inset-0 bg-slate-950/95 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-800">
+            <div class="bg-slate-900 text-white p-6 text-center relative border-b border-slate-800">
+                <div class="w-16 h-16 bg-amber-500 text-slate-950 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-amber-500/20">
+                    <i class="fa-solid fa-walkie-talkie text-3xl"></i>
+                </div>
+                <h1 class="font-black text-xl tracking-wider text-white">PT. BANDANG MINING COAL</h1>
+                <p class="text-xs text-slate-400 mt-1">Sistem Rekap Radio Motorola & Inventory IT</p>
+                <div class="mt-2 inline-block px-2.5 py-0.5 bg-slate-800 rounded-md text-[10px] text-amber-400 font-semibold border border-slate-700">
+                    Hak Cipta Web: Zainudin IT BMC
+                </div>
+            </div>
+            
+            <form onsubmit="handleLogin(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Username *</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-3 top-3.5 text-slate-400 text-xs"></i>
+                        <input type="text" id="login-username" required placeholder="Masukkan Username..." class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none font-semibold text-slate-800 transition">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Password *</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-3 top-3.5 text-slate-400 text-xs"></i>
+                        <input type="password" id="login-password" required placeholder="••••••••" class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none text-slate-800 transition">
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold rounded-xl transition shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-right-to-bracket"></i> Masuk ke Sistem
+                    </button>
+                </div>
+
+                <!-- Teks Pemberitahuan di Baris Paling Bawah Modal Login -->
+                <div class="pt-2 text-center border-t border-slate-100 mt-4">
+                    <p class="text-xs font-semibold text-slate-600">
+                        ( izin akses data tersebut hubungi Zainudin : 082289006185 )
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== KONTEN UTAMA APLIKASI ==================== -->
+    <div id="main-app-container" class="hidden flex-1 flex flex-col">
+        <!-- Print Header Only -->
+        <div class="print-only p-6 border-b-2 border-slate-900 mb-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold uppercase tracking-wider text-slate-900">PT. BANDANG MINING COAL</h1>
+                    <h2 class="text-lg font-semibold text-slate-700">DEPARTEMEN IT & TELEKOMUNIKASI</h2>
+                    <p class="text-xs text-slate-500">Hak Cipta Web & Penanggung Jawab: Zainudin IT BMC</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs font-bold uppercase text-slate-600">Laporan Master Inventaris Radio Motorola</p>
+                    <p class="text-xs text-slate-500" id="print-date-stamp">Dicetak pada: -</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Navbar -->
+        <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-30 no-print">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-20">
+                    <!-- Logo & Title -->
+                    <div class="flex items-center space-x-3.5">
+                        <div class="bg-amber-500 text-slate-900 p-2.5 rounded-xl font-bold flex items-center justify-center w-11 h-11 shadow-md shadow-amber-500/20">
+                            <i class="fa-solid fa-walkie-talkie text-2xl"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h1 class="font-extrabold text-xl tracking-tight text-white">PT. BANDANG MINING COAL</h1>
+                                <span id="user-role-badge" class="bg-amber-500 text-slate-950 text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wide">SERVER</span>
+                            </div>
+                            <p class="text-xs text-slate-300 font-medium flex items-center gap-1.5 mt-0.5">
+                                <i class="fa-solid fa-user-gear text-amber-400"></i>
+                                <span>Sistem Rekap Radio & Inventory — <strong id="logged-username-display">Zainudin IT BMC</strong></span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Action Header & Ukuran Board Control -->
+                    <div class="flex items-center space-x-2.5">
+                        
+                        <!-- Pilihan Pengaturan Ukuran Layout Board -->
+                        <div class="hidden sm:flex items-center bg-slate-800 p-1 rounded-xl border border-slate-700 mr-1">
+                            <span class="text-[11px] text-slate-400 font-bold px-2 flex items-center gap-1">
+                                <i class="fa-solid fa-down-left-and-up-right-to-center text-amber-400"></i> Ukuran Board:
+                            </span>
+                            <select id="board-size-selector" onchange="changeBoardSize(this.value)" class="bg-slate-900 text-amber-400 text-xs font-bold py-1 px-2 rounded-lg border border-slate-700 focus:outline-none">
+                                <option value="board-size-normal" selected>Normal (100%)</option>
+                                <option value="board-size-compact">Ringkas (90%)</option>
+                                <option value="board-size-large">Besar (110%)</option>
+                            </select>
+                        </div>
+
+                        <button onclick="window.print()" class="text-xs bg-slate-800 hover:bg-slate-700 text-amber-400 font-medium px-3 py-2 rounded-lg border border-slate-700 transition flex items-center space-x-2 shadow-sm" title="Cetak Dokumen PDF">
+                            <i class="fa-solid fa-print"></i>
+                            <span class="hidden sm:inline">Cetak PDF</span>
+                        </button>
+                        <button onclick="openSettingsModal()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium px-3 py-2 rounded-lg border border-slate-700 transition flex items-center space-x-1.5" title="Pengaturan Keamanan & Akses">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <span class="hidden md:inline">Keamanan Akun</span>
+                        </button>
+                        <button onclick="handleLogout()" class="text-xs bg-rose-600 hover:bg-rose-700 text-white font-medium px-3 py-2 rounded-lg transition flex items-center space-x-1.5" title="Keluar Akun">
+                            <i class="fa-solid fa-power-off"></i>
+                            <span class="hidden md:inline">Keluar</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Wrapper Container dengan ID untuk Dynamic Board Size Scaling -->
+        <div id="board-layout-wrapper" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col transition-all duration-200">
+            
+            <!-- Navigation Tabs -->
+            <div class="mb-6 border-b border-slate-200 no-print">
+                <nav class="-mb-px flex space-x-2 sm:space-x-8 overflow-x-auto pb-1" aria-label="Tabs">
+                    <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="tab-btn active border-amber-500 text-amber-600 whitespace-nowrap py-3 px-3 border-b-2 font-bold text-sm flex items-center space-x-2">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <span>Dashboard Overview</span>
+                    </button>
+
+                    <button onclick="switchTab('radios')" id="tab-btn-radios" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 whitespace-nowrap py-3 px-3 border-b-2 font-bold text-sm flex items-center space-x-2">
+                        <i class="fa-solid fa-walkie-talkie"></i>
+                        <span>Master Radio & PTT ID</span>
+                    </button>
+
+                    <button onclick="switchTab('inventory')" id="tab-btn-inventory" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 whitespace-nowrap py-3 px-3 border-b-2 font-bold text-sm flex items-center space-x-2">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                        <span>Pengeluaran & Penerimaan</span>
+                    </button>
+
+                    <button onclick="switchTab('repairs')" id="tab-btn-repairs" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 whitespace-nowrap py-3 px-3 border-b-2 font-bold text-sm flex items-center space-x-2">
+                        <i class="fa-solid fa-wrench"></i>
+                        <span>Rekap Perbaikan & Service</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- ==================== TAB 1: DASHBOARD OVERVIEW ==================== -->
+            <div id="tab-dashboard" class="tab-content space-y-6">
+                <!-- Summary Stats Widgets Row 1 -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Radio</span>
+                            <div class="p-2 bg-blue-50 text-blue-600 rounded-lg"><i class="fa-solid fa-radio"></i></div>
+                        </div>
+                        <div class="mt-2 text-2xl font-extrabold text-slate-800" id="stat-total-radio">0</div>
+                        <span class="text-[11px] text-slate-500 font-medium">Unit Terdaftar</span>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Kondisi Baik</span>
+                            <div class="p-2 bg-emerald-50 text-emerald-600 rounded-lg"><i class="fa-solid fa-circle-check"></i></div>
+                        </div>
+                        <div class="mt-2 text-2xl font-extrabold text-emerald-600" id="stat-good-radio">0</div>
+                        <span class="text-[11px] text-emerald-600 font-semibold">Siap Digunakan</span>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Perlu Service</span>
+                            <div class="p-2 bg-rose-50 text-rose-600 rounded-lg"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        </div>
+                        <div class="mt-2 text-2xl font-extrabold text-rose-600" id="stat-damaged-radio">0</div>
+                        <span class="text-[11px] text-rose-500 font-semibold">Rusak / Dalam Service</span>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">EXPD Expired</span>
+                            <div class="p-2 bg-purple-50 text-purple-600 rounded-lg"><i class="fa-solid fa-calendar-xmark"></i></div>
+                        </div>
+                        <div class="mt-2 text-2xl font-extrabold text-purple-700" id="stat-expired-radio">0</div>
+                        <span class="text-[11px] text-purple-600 font-semibold">Garansi Habis</span>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Barang Masuk</span>
+                            <div class="p-2 bg-teal-50 text-teal-600 rounded-lg"><i class="fa-solid fa-arrow-down-to-bracket"></i></div>
+                        </div>
+                        <div class="mt-2 text-2xl font-extrabold text-teal-700" id="stat-item-in">0</div>
+                        <span class="text-[11px] text-slate-500 font-medium">Log Penerimaan</span>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Barang Keluar</span>
+                            <div class="p-2 bg-amber-50 text-amber-600 rounded-lg"><i class="fa-solid fa-arrow-up-from-bracket"></i></div>
+                        </div>
+                        <div class="mt-2 text-2xl font-extrabold text-amber-600" id="stat-item-out">0</div>
+                        <span class="text-[11px] text-slate-500 font-medium">Log Pengeluaran</span>
+                    </div>
+                </div>
+
+                <!-- Model Specific Widgets Row 2 -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-slate-900 text-white p-4 rounded-xl shadow-sm border border-slate-800 flex justify-between items-center">
+                        <div>
+                            <p class="text-xs text-amber-400 font-bold uppercase tracking-wider">Model XiR M3688 (RIG)</p>
+                            <h3 class="text-2xl font-extrabold mt-1 text-white" id="count-xir-m3688">0 Unit</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xl border border-amber-500/30">
+                            <i class="fa-solid fa-tower-cell"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 text-white p-4 rounded-xl shadow-sm border border-slate-800 flex justify-between items-center">
+                        <div>
+                            <p class="text-xs text-blue-400 font-bold uppercase tracking-wider">Model XiR C2660 (Handheld)</p>
+                            <h3 class="text-2xl font-extrabold mt-1 text-white" id="count-xir-c2660">0 Unit</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xl border border-blue-500/30">
+                            <i class="fa-solid fa-walkie-talkie"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 text-white p-4 rounded-xl shadow-sm border border-slate-800 flex justify-between items-center">
+                        <div>
+                            <p class="text-xs text-emerald-400 font-bold uppercase tracking-wider">Model CP 1660 (Handheld)</p>
+                            <h3 class="text-2xl font-extrabold mt-1 text-white" id="count-cp1660">0 Unit</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xl border border-emerald-500/30">
+                            <i class="fa-solid fa-radio"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 no-print">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2 mb-4">
+                            <i class="fa-solid fa-chart-pie text-amber-500"></i> Kondisi Radio Motorola IT PT. Bandang Mining Coal
+                        </h3>
+                        <div class="h-64 relative flex items-center justify-center">
+                            <canvas id="radioStatusChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2 mb-4">
+                            <i class="fa-solid fa-hourglass-half text-purple-500"></i> Status Masa Komisioning (EXPD 1 & 2 Tahun)
+                        </h3>
+                        <div class="h-64 relative">
+                            <canvas id="expdChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== TAB 2: MASTER RADIO & ID PTT ==================== -->
+            <div id="tab-radios" class="tab-content hidden space-y-4">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 justify-between items-center no-print">
+                    <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                        <div class="relative w-full sm:w-64">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
+                            <input type="text" id="search-radio" oninput="renderRadioTable()" placeholder="Cari SN, Nama Barang, ID PTT..." class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        </div>
+                        <select id="filter-radio-model" onchange="renderRadioTable()" class="text-xs bg-slate-50 border border-slate-300 rounded-lg py-2 px-3 focus:ring-2 focus:ring-amber-500 focus:outline-none font-medium">
+                            <option value="ALL">Semua Model</option>
+                            <option value="XiR M3688">XiR M3688</option>
+                            <option value="XiR C2660">XiR C2660</option>
+                            <option value="CP 1660">CP 1660</option>
+                        </select>
+                        <select id="filter-radio-status" onchange="renderRadioTable()" class="text-xs bg-slate-50 border border-slate-300 rounded-lg py-2 px-3 focus:ring-2 focus:ring-amber-500 focus:outline-none font-medium">
+                            <option value="ALL">Semua Kondisi</option>
+                            <option value="Baik">Baik</option>
+                            <option value="Rusak Ringan">Rusak Ringan</option>
+                            <option value="Rusak Berat">Rusak Berat</option>
+                            <option value="Dalam Perbaikan">Dalam Perbaikan</option>
+                            <option value="Selesai Diperbaiki">Selesai Diperbaiki</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+                        <button onclick="exportTableToCSV('radio-table', 'Master_Radio_PTT_Zainudin_IT.csv')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs px-3 py-2 rounded-lg font-medium border border-slate-300 transition flex items-center gap-1.5" title="Unduh ke Excel / Office">
+                            <i class="fa-solid fa-file-excel text-emerald-600"></i> Ekspor Excel/CSV
+                        </button>
+                        <button id="btn-add-radio" onclick="openRadioModal()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold text-xs px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus"></i> Tambah Master Radio
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden print-card">
+                    <div class="overflow-x-auto table-responsive">
+                        <table class="w-full text-xs text-left text-slate-700" id="radio-table">
+                            <thead class="bg-slate-900 text-slate-200 uppercase text-[11px] font-semibold tracking-wider">
+                                <tr>
+                                    <th class="p-3.5">No</th>
+                                    <th class="p-3.5">Nama Barang / Unit</th>
+                                    <th class="p-3.5">Serial Number (SN)</th>
+                                    <th class="p-3.5">ID PTT</th>
+                                    <th class="p-3.5">Model / Type</th>
+                                    <th class="p-3.5">Tgl Komisioning</th>
+                                    <th class="p-3.5">Masa EXPD</th>
+                                    <th class="p-3.5">Tgl EXPD Unit</th>
+                                    <th class="p-3.5">Status EXPD</th>
+                                    <th class="p-3.5">Kondisi / Perbaikan</th>
+                                    <th class="p-3.5">Penerima / PIC</th>
+                                    <th class="p-3.5">Dept / PIT Mining</th>
+                                    <th class="p-3.5 text-center no-print" id="th-action-radio">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="radio-table-body" class="divide-y divide-slate-200"></tbody>
+                        </table>
+                    </div>
+                    <div class="px-4 py-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 flex justify-between items-center no-print" id="radio-count-footer">
+                        <span>Menampilkan 0 data</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== TAB 3: PENGELUARAN & PENERIMAAN ==================== -->
+            <div id="tab-inventory" class="tab-content hidden space-y-4">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 justify-between items-center no-print">
+                    <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                        <div class="relative w-full sm:w-64">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
+                            <input type="text" id="search-inventory" oninput="renderInventoryTable()" placeholder="Cari Barang, ID PTT, Penerima..." class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        </div>
+                        <select id="filter-inventory-type" onchange="renderInventoryTable()" class="text-xs bg-slate-50 border border-slate-300 rounded-lg py-2 px-3 focus:ring-2 focus:ring-amber-500 focus:outline-none font-medium">
+                            <option value="ALL">Semua Jenis Transaksi</option>
+                            <option value="Pengeluaran (Keluar)">Pengeluaran (Keluar)</option>
+                            <option value="Penerimaan (Masuk)">Penerimaan (Masuk)</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+                        <button onclick="exportTableToCSV('inventory-table', 'Log_Transaksi_Barang_Radio.csv')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs px-3 py-2 rounded-lg font-medium border border-slate-300 transition flex items-center gap-1.5" title="Unduh ke Excel / Office">
+                            <i class="fa-solid fa-file-excel text-emerald-600"></i> Ekspor Excel/CSV
+                        </button>
+                        <button id="btn-add-inventory" onclick="openInventoryModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus"></i> Catat Transaksi
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden print-card">
+                    <div class="overflow-x-auto table-responsive">
+                        <table class="w-full text-xs text-left text-slate-700" id="inventory-table">
+                            <thead class="bg-slate-900 text-slate-200 uppercase text-[11px] font-semibold tracking-wider">
+                                <tr>
+                                    <th class="p-3.5">Tanggal</th>
+                                    <th class="p-3.5">Jenis Transaksi</th>
+                                    <th class="p-3.5">ID PTT / Radio Linked</th>
+                                    <th class="p-3.5">Nama Barang / Part</th>
+                                    <th class="p-3.5">Jumlah</th>
+                                    <th class="p-3.5">Penerima / Penyerah</th>
+                                    <th class="p-3.5">Dept / PIT Mining</th>
+                                    <th class="p-3.5">Keterangan</th>
+                                    <th class="p-3.5 text-center no-print" id="th-action-inventory">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventory-table-body" class="divide-y divide-slate-200"></tbody>
+                        </table>
+                    </div>
+                    <div class="px-4 py-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 flex justify-between items-center no-print" id="inventory-count-footer">
+                        <span>Menampilkan 0 data</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== TAB 4: REKAP PERBAIKAN & SERVICE ==================== -->
+            <div id="tab-repairs" class="tab-content hidden space-y-4">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 justify-between items-center no-print">
+                    <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                        <div class="relative w-full sm:w-64">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
+                            <input type="text" id="search-repair" oninput="renderRepairTable()" placeholder="Cari Nama Barang, SN, Kendala..." class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+                        <button onclick="exportTableToCSV('repair-table', 'Rekap_Perbaikan_Radio_Motorola.csv')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs px-3 py-2 rounded-lg font-medium border border-slate-300 transition flex items-center gap-1.5" title="Unduh ke Excel / Office">
+                            <i class="fa-solid fa-file-excel text-emerald-600"></i> Ekspor Excel/CSV
+                        </button>
+                        <button id="btn-add-repair" onclick="openRepairModal()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus"></i> Laporkan Kerusakan
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden print-card">
+                    <div class="overflow-x-auto table-responsive">
+                        <table class="w-full text-xs text-left text-slate-700" id="repair-table">
+                            <thead class="bg-slate-900 text-slate-200 uppercase text-[11px] font-semibold tracking-wider">
+                                <tr>
+                                    <!-- DIGANTI: Kolom ID PTT kini menjadi Nama Barang / Unit -->
+                                    <th class="p-3.5">Nama Barang / Unit</th>
+                                    <th class="p-3.5">SN Radio</th>
+                                    <th class="p-3.5">Tgl Lapor</th>
+                                    <th class="p-3.5">Detail Kerusakan</th>
+                                    <th class="p-3.5">Status Service</th>
+                                    <th class="p-3.5">Teknisi / Vendor</th>
+                                    <th class="p-3.5">Tgl Selesai</th>
+                                    <th class="p-3.5">Catatan Perbaikan</th>
+                                    <th class="p-3.5 text-center no-print" id="th-action-repair">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="repair-table-body" class="divide-y divide-slate-200"></tbody>
+                        </table>
+                    </div>
+                    <div class="px-4 py-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 flex justify-between items-center no-print" id="repair-count-footer">
+                        <span>Menampilkan 0 log perbaikan</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: PENGATURAN KEAMANAN AKUN ==================== -->
+    <div id="modal-settings" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full flex flex-col max-h-[85vh] overflow-hidden border border-slate-200 my-auto">
+            <div class="bg-slate-900 text-white px-5 py-4 flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-sm flex items-center gap-2 text-amber-400">
+                    <i class="fa-solid fa-shield-halved"></i> Pengaturan Keamanan & Kredensial Akun
+                </h3>
+                <button onclick="closeModal('modal-settings')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <div class="p-6 space-y-5 overflow-y-auto custom-scroll flex-1">
+                <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1">
+                    <p class="font-bold text-slate-700">Status Akun Login Saat Ini:</p>
+                    <p class="text-slate-500">Role: <strong id="settings-current-role-label" class="uppercase text-amber-600">SERVER</strong></p>
+                    <p class="text-[11px] text-slate-400 mt-1" id="settings-role-notice">Anda memiliki hak akses penuh untuk mengubah kredensial akun dan melakukan reset data sistem.</p>
+                </div>
+
+                <!-- Bagian Pengubahan Username & Sandi (Khusus Server) -->
+                <div id="server-only-credentials-box" class="space-y-4 border-t pt-4">
+                    <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
+                        <i class="fa-solid fa-key text-amber-500"></i> Kelola Username & Sandi Akun (Akses Server)
+                    </h4>
+                    
+                    <div class="space-y-3 bg-amber-50/50 p-3.5 rounded-xl border border-amber-200">
+                        <p class="text-[11px] font-bold text-amber-900 uppercase">Akun Server</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="input-new-server-user" placeholder="Username baru..." class="text-xs p-2 bg-white border border-slate-300 rounded-lg">
+                            <input type="password" id="input-new-server-pass" placeholder="Password baru..." class="text-xs p-2 bg-white border border-slate-300 rounded-lg">
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 bg-blue-50/50 p-3.5 rounded-xl border border-blue-200">
+                        <p class="text-[11px] font-bold text-blue-900 uppercase">Akun Admin</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="input-new-admin-user" placeholder="Username baru..." class="text-xs p-2 bg-white border border-slate-300 rounded-lg">
+                            <input type="password" id="input-new-admin-pass" placeholder="Password baru..." class="text-xs p-2 bg-white border border-slate-300 rounded-lg">
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 bg-slate-100 p-3.5 rounded-xl border border-slate-300">
+                        <p class="text-[11px] font-bold text-slate-800 uppercase">Akun Viewer</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="input-new-viewer-user" placeholder="Username baru..." class="text-xs p-2 bg-white border border-slate-300 rounded-lg">
+                            <input type="password" id="input-new-viewer-pass" placeholder="Password baru..." class="text-xs p-2 bg-white border border-slate-300 rounded-lg">
+                        </div>
+                    </div>
+
+                    <button onclick="saveNewCredentials()" class="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow transition">
+                        Simpan Perubahan Kredensial Akun
+                    </button>
+                </div>
+
+                <!-- Bagian Reset Mode System Data (HANYA MUNCUL DI AKUN SERVER, DITUTUP/DISEMBUNYIKAN UNTUK ADMIN) -->
+                <div id="reset-system-section" class="space-y-3 border-t pt-4">
+                    <h4 class="text-xs font-bold text-rose-600 uppercase tracking-wide flex items-center gap-1.5">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Reset Mode System Data (Akses Khusus Server)
+                    </h4>
+                    <p class="text-[11px] text-slate-500">Masukkan <strong>sandi server</strong> untuk mengonfirmasi penghapusan seluruh database saat ini dan mengembalikannya ke data awal PT. Bandang Mining Coal.</p>
+                    
+                    <div class="space-y-2">
+                        <input type="password" id="input-reset-confirmation-pass" placeholder="Masukkan Sandi Server..." class="w-full text-xs p-2.5 bg-slate-50 border border-rose-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                        <button onclick="executeSecureReset()" class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-rotate-right"></i> Verifikasi & Reset Seluruh Data
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Pesan pembatasan untuk admin biasa -->
+                <div id="admin-restricted-notice" class="hidden p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-900">
+                    <i class="fa-solid fa-lock mr-1 text-amber-600"></i> Opsi Reset Mode Awal ditutup untuk akun Admin. Kontak <strong>Zainudin IT BMC</strong> jika memerlukan pemulihan data awal.
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-50 border-t flex justify-end shrink-0">
+                <button onclick="closeModal('modal-settings')" class="px-4 py-2 text-xs font-medium text-slate-600 bg-slate-200 hover:bg-slate-300 rounded-xl transition">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL 1: FORM MASTER RADIO ==================== -->
+    <div id="modal-radio" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-lg w-full overflow-hidden flex flex-col max-h-[85vh] my-auto">
+            <div class="bg-slate-900 text-white px-5 py-4 flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-base flex items-center gap-2" id="modal-radio-title">
+                    <i class="fa-solid fa-walkie-talkie text-amber-400"></i> Master Radio Motorola
+                </h3>
+                <button onclick="closeModal('modal-radio')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form id="form-radio" onsubmit="saveRadio(event)" class="flex flex-col flex-1 overflow-hidden">
+                <!-- Content Scrollable Body -->
+                <div class="p-5 space-y-4 overflow-y-auto custom-scroll flex-1">
+                    <input type="hidden" id="radio-id">
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Nama Barang / Unit *</label>
+                        <input type="text" id="radio-item-name" required placeholder="Contoh: Radio Rig Kabin / HT Lapangan" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 font-bold text-slate-800">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Serial Number (SN) *</label>
+                            <input type="text" id="radio-sn" required placeholder="Contoh: 782TRX1001" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 font-mono uppercase">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">ID PTT (Push-To-Talk) *</label>
+                            <input type="text" id="radio-ptt-id" required placeholder="Contoh: PTT-101" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 font-bold text-slate-800 uppercase">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Model / Type Radio *</label>
+                            <select id="radio-model" required onchange="handleModelChange()" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500">
+                                <option value="">-- Pilih Model --</option>
+                                <option value="XiR M3688">XiR M3688 (Mobile / RIG)</option>
+                                <option value="XiR C2660">XiR C2660 (Handheld / HT)</option>
+                                <option value="CP 1660">CP 1660 (Handheld / HT)</option>
+                                <option value="CUSTOM">-- Model Lainnya --</option>
+                            </select>
+                        </div>
+                        <div id="custom-model-container" class="hidden">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Input Model Manual *</label>
+                            <input type="text" id="radio-custom-model" placeholder="Ketik Tipe Radio..." class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Kondisi Radio *</label>
+                            <select id="radio-status" required class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500">
+                                <option value="Baik">Baik (Siap Pakai)</option>
+                                <option value="Rusak Ringan">Rusak Ringan</option>
+                                <option value="Rusak Berat">Rusak Berat</option>
+                                <option value="Dalam Perbaikan">Dalam Perbaikan (Service)</option>
+                                <option value="Selesai Diperbaiki">Selesai Diperbaiki</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="bg-amber-50/60 p-3.5 rounded-xl border border-amber-200/60 space-y-3">
+                        <h4 class="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+                            <i class="fa-solid fa-calendar-check text-amber-600"></i> Tanggal Komisioning & Garansi
+                        </h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Tgl Awal Komisioning *</label>
+                                <input type="date" id="radio-commission-date" required onchange="calculateExpdDate()" class="w-full text-xs p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Pilihan EXPD Masa Garansi *</label>
+                                <select id="radio-expd-period" required onchange="calculateExpdDate()" class="w-full text-xs p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 font-bold">
+                                    <option value="1">1 Tahun</option>
+                                    <option value="2">2 Tahun</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="bg-white p-2.5 rounded-lg border border-amber-200 text-xs flex justify-between items-center">
+                            <span class="text-slate-600 font-medium">Kalkulasi Tgl EXPD:</span>
+                            <span id="calculated-expd-display" class="font-extrabold text-amber-700">-</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Penerima / PIC Utama</label>
+                            <input type="text" id="radio-pic" placeholder="Nama Petugas / Driver" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Departemen / PIT Mining</label>
+                            <input type="text" id="radio-dept" placeholder="Contoh: Pit 1 North / Hauling / HSE" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Keterangan / Catatan Kondisi</label>
+                        <textarea id="radio-notes" rows="2" placeholder="Catatan kondisi fisik, antena, kelengkapan..." class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500"></textarea>
+                    </div>
+                </div>
+
+                <!-- Footer Fixed Actions (Bisa Diklik Tanpa Tertutup Bar Windows) -->
+                <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2 shrink-0">
+                    <button type="button" onclick="closeModal('modal-radio')" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-200 hover:bg-slate-300 rounded-lg transition">Batal</button>
+                    <button type="submit" class="px-5 py-2 text-xs font-bold text-slate-950 bg-amber-500 hover:bg-amber-600 rounded-lg shadow-sm transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan Master Radio
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL 2: FORM PENGELUARAN & PENERIMAAN ==================== -->
+    <div id="modal-inventory" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-lg w-full overflow-hidden flex flex-col max-h-[85vh] my-auto">
+            <div class="bg-slate-900 text-white px-5 py-4 flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-base flex items-center gap-2" id="modal-inventory-title">
+                    <i class="fa-solid fa-boxes-stacked text-blue-400"></i> Catat Transaksi Barang
+                </h3>
+                <button onclick="closeModal('modal-inventory')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form id="form-inventory" onsubmit="saveInventory(event)" class="flex flex-col flex-1 overflow-hidden">
+                <!-- Content Scrollable Body -->
+                <div class="p-5 space-y-4 overflow-y-auto custom-scroll flex-1">
+                    <input type="hidden" id="inventory-id">
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Jenis Transaksi *</label>
+                            <select id="inventory-type" required class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-bold">
+                                <option value="Pengeluaran (Keluar)">📤 Pengeluaran (Keluar)</option>
+                                <option value="Penerimaan (Masuk)">📥 Penerimaan (Masuk)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal *</label>
+                            <input type="date" id="inventory-date" required class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Tautkan ID PTT / Radio</label>
+                            <select id="inventory-ptt-id" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">-- Tidak Terikat ID PTT --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Nama Barang / Part *</label>
+                            <input type="text" id="inventory-name" required placeholder="Baterai, Antena, Extra Mic..." class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Jumlah (Qty) *</label>
+                            <input type="number" id="inventory-qty" min="1" required placeholder="1" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Penerima / Penyerah Barang *</label>
+                            <input type="text" id="inventory-person" required placeholder="Nama Petugas" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Departemen / PIT Mining</label>
+                        <input type="text" id="inventory-dept" placeholder="Contoh: PIT 2 South / Plant Maintenance" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Keterangan / Keperluan</label>
+                        <textarea id="inventory-notes" rows="2" placeholder="Keperluan penggantian, nomor PO..." class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+                    </div>
+                </div>
+
+                <!-- Footer Fixed Actions -->
+                <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2 shrink-0">
+                    <button type="button" onclick="closeModal('modal-inventory')" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-200 hover:bg-slate-300 rounded-lg transition">Batal</button>
+                    <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan Log Barang
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL 3: FORM PERBAIKAN / SERVICE ==================== -->
+    <div id="modal-repair" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-lg w-full overflow-hidden flex flex-col max-h-[85vh] my-auto">
+            <div class="bg-slate-900 text-white px-5 py-4 flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-base flex items-center gap-2" id="modal-repair-title">
+                    <i class="fa-solid fa-wrench text-rose-400"></i> Form Kerusakan & Service Radio
+                </h3>
+                <button onclick="closeModal('modal-repair')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form id="form-repair" onsubmit="saveRepair(event)" class="flex flex-col flex-1 overflow-hidden">
+                <!-- Content Scrollable Body -->
+                <div class="p-5 space-y-4 overflow-y-auto custom-scroll flex-1">
+                    <input type="hidden" id="repair-id">
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <!-- Pilihan Radio Terhubung -->
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Pilih Barang / Radio Unit *</label>
+                            <select id="repair-radio-id" required class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-rose-500 font-medium">
+                                <option value="">-- Pilih Unit Radio Motorola --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal Lapor Kerusakan *</label>
+                            <input type="date" id="repair-report-date" required class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-rose-500">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Detail Kerusakan / Kendala *</label>
+                        <textarea id="repair-issue" rows="2" required placeholder="Jelaskan kondisi kerusakan..." class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-rose-500"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Status Perbaikan *</label>
+                            <select id="repair-status" required class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-rose-500 font-bold">
+                                <option value="Rusak Ringan">Rusak Ringan</option>
+                                <option value="Rusak Berat">Rusak Berat</option>
+                                <option value="Dalam Perbaikan">Dalam Perbaikan (Service)</option>
+                                <option value="Selesai Diperbaiki">Selesai Diperbaiki</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Teknisi / Vendor Service</label>
+                            <input type="text" id="repair-technician" placeholder="Zainudin IT BMC / Vendor" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-rose-500">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal Selesai Service</label>
+                            <input type="date" id="repair-finish-date" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-rose-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Catatan Service / Part Diganti</label>
+                            <input type="text" id="repair-notes" placeholder="Ganti IC / Tune Up Freq..." class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-rose-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Fixed Actions -->
+                <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2 shrink-0">
+                    <button type="button" onclick="closeModal('modal-repair')" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-200 hover:bg-slate-300 rounded-lg transition">Batal</button>
+                    <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan Log Perbaikan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none no-print">
+        <div class="bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center space-x-3 border border-slate-700">
+            <div id="toast-icon" class="text-emerald-400 text-lg"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="text-xs font-semibold" id="toast-message">Notifikasi sistem</div>
+        </div>
+    </div>
+
+    <!-- ==================== HAK CIPTA WEB FOOTER ==================== -->
+    <footer class="bg-slate-900 text-slate-400 border-t border-slate-800 py-4 text-center text-xs mt-auto no-print">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <div><strong>PT. BANDANG MINING COAL</strong> — IT & Radio Telecommunication System</div>
+            <div class="text-slate-300">Hak Cipta Web & Penanggung Jawab: <span class="text-amber-400 font-bold">Zainudin IT BMC</span></div>
+        </div>
+    </footer>
+
+    <!-- JS Logic System -->
+    <script>
+        const STORAGE_KEY_RADIOS = 'bmc_radios_v5';
+        const STORAGE_KEY_INVENTORY = 'bmc_inventory_v5';
+        const STORAGE_KEY_REPAIRS = 'bmc_repairs_v5';
+        const STORAGE_KEY_CREDS = 'bmc_custom_creds_v5';
+
+        // Credentials
+        let credentials = JSON.parse(localStorage.getItem(STORAGE_KEY_CREDS)) || {
+            server: { user: 'server', pass: 'bmc123' },
+            admin: { user: 'admin', pass: 'admin123' },
+            viewer: { user: 'viewer', pass: 'viewer123' }
+        };
+
+        let currentRole = null; // 'server', 'admin', 'viewer'
+
+        let radios = [];
+        let inventory = [];
+        let repairs = [];
+
+        let statusChartInstance = null;
+        let expdChartInstance = null;
+
+        const initialRadios = [
+            { id: 'R-101', itemName: 'Radio Rig Kabin DT-105', pttId: 'PTT-101', sn: '782TRX9001', model: 'XiR M3688', commissionDate: '2025-01-15', expdPeriod: 2, expdDate: '2027-01-15', status: 'Baik', pic: 'Budi Santoso', dept: 'Pit 1 North Mining', notes: 'Terpasang di Unit DT-105' },
+            { id: 'R-102', itemName: 'HT Lapangan HSE-01', pttId: 'PTT-102', sn: '782TRX9002', model: 'XiR C2660', commissionDate: '2024-11-01', expdPeriod: 1, expdDate: '2025-11-01', status: 'Baik', pic: 'Eko Raharjo', dept: 'HSE Safety Team', notes: 'Baterai cadangan ok' },
+            { id: 'R-103', itemName: 'HT Hauling Team', pttId: 'PTT-103', sn: '782TRX9003', model: 'CP 1660', commissionDate: '2023-10-10', expdPeriod: 2, expdDate: '2025-10-10', status: 'Rusak Berat', pic: 'Dedi Kurniawan', notes: 'Tertabrak alat berat di Hauling' },
+            { id: 'R-104', itemName: 'Radio Rig Excavator EX-301', pttId: 'PTT-104', sn: '782TRX9004', model: 'XiR M3688', commissionDate: '2026-02-01', expdPeriod: 2, expdDate: '2028-02-01', status: 'Baik', pic: 'Agus Prayitno', notes: 'RIG Kabin Excavator EX-301' },
+            { id: 'R-105', itemName: 'HT Workshop IT Backup', pttId: 'PTT-105', sn: '782TRX9005', model: 'XiR C2660', commissionDate: '2025-06-20', expdPeriod: 1, expdDate: '2026-06-20', status: 'Dalam Perbaikan', pic: 'Zainudin IT BMC', dept: 'Workshop IT', notes: 'Proses ganti tombol PTT' }
+        ];
+
+        const initialInventory = [
+            { id: 'I-1', date: '2026-02-10', type: 'Penerimaan (Masuk)', pttId: 'PTT-101', name: 'Baterai Motorola PMNN4409AR', qty: 5, person: 'Zainudin IT BMC', dept: 'IT Logistics', notes: 'Pengadaan dari Surabaya' },
+            { id: 'I-2', date: '2026-02-14', type: 'Pengeluaran (Keluar)', pttId: 'PTT-102', name: 'Antena Original VHF CP1660', qty: 1, person: 'Eko Raharjo', dept: 'HSE Safety Team', notes: 'Penggantian antena patah' }
+        ];
+
+        // Laporan Service Awal (Simpan itemName alih-alih pttId)
+        const initialRepairs = [
+            { id: 'REP-1', radioId: 'R-105', itemName: 'HT Workshop IT Backup', sn: '782TRX9005', date: '2026-02-18', issue: 'Suara speaker kecil & PTT macet', status: 'Dalam Perbaikan', tech: 'Zainudin IT BMC', finishDate: '', notes: 'Menunggu sparepart IC sound' }
+        ];
+
+        window.onload = function() {
+            document.getElementById('print-date-stamp').innerText = 'Dicetak pada: ' + new Date().toLocaleString('id-ID');
+            loadStorageData();
+        };
+
+        // Pengaturan Ukuran Board Layout
+        function changeBoardSize(sizeClass) {
+            const wrapper = document.getElementById('board-layout-wrapper');
+            wrapper.classList.remove('board-size-compact', 'board-size-normal', 'board-size-large');
+            wrapper.classList.add(sizeClass);
+            showToast('Ukuran layout board disesuaikan', 'info');
+        }
+
+        // ==================== AUTH LOGIN / LOGOUT ====================
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('login-username').value.trim().toLowerCase();
+            const password = document.getElementById('login-password').value.trim();
+
+            if (username === credentials.server.user && password === credentials.server.pass) {
+                currentRole = 'server';
+            } else if (username === credentials.admin.user && password === credentials.admin.pass) {
+                currentRole = 'admin';
+            } else if (username === credentials.viewer.user && password === credentials.viewer.pass) {
+                currentRole = 'viewer';
+            } else {
+                showToast('Username atau Password salah! Apabila ingin akses hubungi Zainudin IT BMC', 'error');
+                return;
+            }
+
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('main-app-container').classList.remove('hidden');
+
+            applyRolePermissions();
+            updateDashboard();
+            renderRadioTable();
+            renderInventoryTable();
+            renderRepairTable();
+
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('radio-commission-date').value = today;
+            document.getElementById('inventory-date').value = today;
+            document.getElementById('repair-report-date').value = today;
+            calculateExpdDate();
+
+            showToast(`Berhasil masuk sebagai ${currentRole.toUpperCase()}`, 'success');
+        }
+
+        function handleLogout() {
+            currentRole = null;
+            document.getElementById('main-app-container').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('login-username').value = '';
+            document.getElementById('login-password').value = '';
+            showToast('Anda telah keluar.', 'info');
+        }
+
+        function applyRolePermissions() {
+            const badge = document.getElementById('user-role-badge');
+            const usernameDisplay = document.getElementById('logged-username-display');
+
+            badge.innerText = currentRole.toUpperCase();
+            if (currentRole === 'server') {
+                badge.className = "bg-amber-500 text-slate-950 text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wide";
+                usernameDisplay.innerText = "Zainudin IT BMC (Server)";
+                document.getElementById('btn-add-radio').style.display = 'inline-flex';
+                document.getElementById('btn-add-inventory').style.display = 'inline-flex';
+                document.getElementById('btn-add-repair').style.display = 'inline-flex';
+            } else if (currentRole === 'admin') {
+                badge.className = "bg-blue-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wide";
+                usernameDisplay.innerText = "Admin Editor";
+                document.getElementById('btn-add-radio').style.display = 'inline-flex';
+                document.getElementById('btn-add-inventory').style.display = 'inline-flex';
+                document.getElementById('btn-add-repair').style.display = 'inline-flex';
+            } else if (currentRole === 'viewer') {
+                badge.className = "bg-slate-700 text-slate-300 text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wide";
+                usernameDisplay.innerText = "Viewer (Read-Only)";
+                document.getElementById('btn-add-radio').style.display = 'none';
+                document.getElementById('btn-add-inventory').style.display = 'none';
+                document.getElementById('btn-add-repair').style.display = 'none';
+            }
+        }
+
+        function openSettingsModal() {
+            const roleLabel = document.getElementById('settings-current-role-label');
+            const serverBox = document.getElementById('server-only-credentials-box');
+            const resetSection = document.getElementById('reset-system-section');
+            const restrictedNotice = document.getElementById('admin-restricted-notice');
+            const notice = document.getElementById('settings-role-notice');
+
+            roleLabel.innerText = currentRole.toUpperCase();
+
+            // PENYESUAIAN: Tutup & Sembunyikan Opsi Reset untuk Admin
+            if (currentRole === 'server') {
+                serverBox.style.display = 'block';
+                resetSection.style.display = 'block';
+                restrictedNotice.classList.add('hidden');
+                notice.innerText = 'Anda login sebagai SERVER. Anda berhak mengubah kredensial dan melakukan reset data sistem.';
+
+                document.getElementById('input-new-server-user').value = credentials.server.user;
+                document.getElementById('input-new-server-pass').value = '';
+                document.getElementById('input-new-admin-user').value = credentials.admin.user;
+                document.getElementById('input-new-admin-pass').value = '';
+                document.getElementById('input-new-viewer-user').value = credentials.viewer.user;
+                document.getElementById('input-new-viewer-pass').value = '';
+            } else {
+                serverBox.style.display = 'none';
+                resetSection.style.display = 'none'; // TUTUP RESET UNTUK ADMIN
+                restrictedNotice.classList.remove('hidden');
+                notice.innerText = 'Anda login sebagai Admin/Viewer. Opsi ubah kredensial & reset mode awal ditutup.';
+            }
+
+            document.getElementById('input-reset-confirmation-pass').value = '';
+            document.getElementById('modal-settings').classList.remove('hidden');
+        }
+
+        function saveNewCredentials() {
+            if (currentRole !== 'server') {
+                showToast('Hanya akun SERVER yang dapat mengubah kredensial!', 'error');
+                return;
+            }
+
+            const sUser = document.getElementById('input-new-server-user').value.trim().toLowerCase();
+            const sPass = document.getElementById('input-new-server-pass').value.trim();
+            const aUser = document.getElementById('input-new-admin-user').value.trim().toLowerCase();
+            const aPass = document.getElementById('input-new-admin-pass').value.trim();
+            const vUser = document.getElementById('input-new-viewer-user').value.trim().toLowerCase();
+            const vPass = document.getElementById('input-new-viewer-pass').value.trim();
+
+            if (sUser) credentials.server.user = sUser;
+            if (sPass) credentials.server.pass = sPass;
+
+            if (aUser) credentials.admin.user = aUser;
+            if (aPass) credentials.admin.pass = aPass;
+
+            if (vUser) credentials.viewer.user = vUser;
+            if (vPass) credentials.viewer.pass = vPass;
+
+            localStorage.setItem(STORAGE_KEY_CREDS, JSON.stringify(credentials));
+            closeModal('modal-settings');
+            showToast('Username & Sandi berhasil diperbarui!', 'success');
+        }
+
+        function executeSecureReset() {
+            if (currentRole !== 'server') {
+                showToast('Akses Ditolak! Opsi Reset hanya untuk akun SERVER (Zainudin IT BMC).', 'error');
+                return;
+            }
+
+            const enteredPass = document.getElementById('input-reset-confirmation-pass').value.trim();
+            if (enteredPass !== credentials.server.pass) {
+                showToast('Sandi Server salah! Reset dibatalkan.', 'error');
+                return;
+            }
+
+            if (confirm('PERINGATAN: Seluruh data akan dikembalikan ke kondisi mode awal. Lanjutkan?')) {
+                radios = [...initialRadios];
+                inventory = [...initialInventory];
+                repairs = [...initialRepairs];
+                saveToLocalStorage();
+                updateDashboard();
+                renderRadioTable();
+                renderInventoryTable();
+                renderRepairTable();
+                closeModal('modal-settings');
+                showToast('Sistem berhasil di-reset ke mode awal.', 'info');
+            }
+        }
+
+        // ==================== STORAGE & DATA HANDLING ====================
+        function loadStorageData() {
+            const storedR = localStorage.getItem(STORAGE_KEY_RADIOS);
+            const storedI = localStorage.getItem(STORAGE_KEY_INVENTORY);
+            const storedRep = localStorage.getItem(STORAGE_KEY_REPAIRS);
+
+            radios = storedR ? JSON.parse(storedR) : initialRadios;
+            inventory = storedI ? JSON.parse(storedI) : initialInventory;
+            repairs = storedRep ? JSON.parse(storedRep) : initialRepairs;
+
+            if (!storedR) saveToLocalStorage();
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem(STORAGE_KEY_RADIOS, JSON.stringify(radios));
+            localStorage.setItem(STORAGE_KEY_INVENTORY, JSON.stringify(inventory));
+            localStorage.setItem(STORAGE_KEY_REPAIRS, JSON.stringify(repairs));
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'border-amber-500', 'text-amber-600');
+                btn.classList.add('border-transparent', 'text-slate-500');
+            });
+
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-btn-${tabName}`);
+            activeBtn.classList.remove('border-transparent', 'text-slate-500');
+            activeBtn.classList.add('active', 'border-amber-500', 'text-amber-600');
+
+            if (tabName === 'dashboard') updateDashboard();
+        }
+
+        function calculateExpdDate() {
+            const commDateVal = document.getElementById('radio-commission-date').value;
+            const periodYears = parseInt(document.getElementById('radio-expd-period').value) || 1;
+            if (!commDateVal) return;
+            const commDate = new Date(commDateVal);
+            commDate.setFullYear(commDate.getFullYear() + periodYears);
+            const expdStr = commDate.toISOString().split('T')[0];
+            document.getElementById('calculated-expd-display').innerText = formatDate(expdStr) + ` (${periodYears} Tahun Garansi)`;
+            return expdStr;
+        }
+
+        function handleModelChange() {
+            const modelVal = document.getElementById('radio-model').value;
+            const customContainer = document.getElementById('custom-model-container');
+            if (modelVal === 'CUSTOM') {
+                customContainer.classList.remove('hidden');
+                document.getElementById('radio-custom-model').required = true;
+            } else {
+                customContainer.classList.add('hidden');
+                document.getElementById('radio-custom-model').required = false;
+            }
+        }
+
+        function getExpdCountdownInfo(expdDateStr) {
+            if (!expdDateStr) return { label: '-', bg: 'bg-slate-100 text-slate-700', code: 'NONE' };
+            
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const expd = new Date(expdDateStr);
+            expd.setHours(0,0,0,0);
+
+            let diffTime = expd - today;
+            let diffDaysTotal = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDaysTotal < 0) {
+                const absDays = Math.abs(diffDaysTotal);
+                return { label: `Expired (${absDays} hari lalu)`, bg: 'bg-rose-100 text-rose-800 border-rose-200', code: 'EXPIRED' };
+            } else if (diffDaysTotal === 0) {
+                return { label: 'Expired Hari Ini', bg: 'bg-amber-100 text-amber-800 border-amber-200', code: 'WARNING' };
+            } else {
+                let years = expd.getFullYear() - today.getFullYear();
+                let months = expd.getMonth() - today.getMonth();
+                let days = expd.getDate() - today.getDate();
+
+                if (days < 0) {
+                    months--;
+                    const prevMonth = new Date(expd.getFullYear(), expd.getMonth(), 0);
+                    days += prevMonth.getDate();
+                }
+                if (months < 0) {
+                    years--;
+                    months += 12;
+                }
+
+                let totalMonths = (years * 12) + months;
+                let text = totalMonths > 0 ? `Sisa ${totalMonths} bln ${days} hr` : `Sisa ${days} hr`;
+
+                const badgeBg = diffDaysTotal <= 30 ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-emerald-100 text-emerald-800 border-emerald-200';
+                return { label: text, bg: badgeBg, code: 'ACTIVE' };
+            }
+        }
+
+        // ==================== DASHBOARD ====================
+        function updateDashboard() {
+            const total = radios.length;
+            const good = radios.filter(r => r.status === 'Baik' || r.status === 'Selesai Diperbaiki').length;
+            const damaged = radios.filter(r => r.status.includes('Rusak') || r.status === 'Dalam Perbaikan').length;
+            
+            let expiredCount = 0;
+            radios.forEach(r => {
+                const info = getExpdCountdownInfo(r.expdDate);
+                if (info.code === 'EXPIRED') expiredCount++;
+            });
+
+            const totalIn = inventory.filter(i => i.type.includes('Penerimaan')).reduce((a, b) => a + Number(b.qty), 0);
+            const totalOut = inventory.filter(i => i.type.includes('Pengeluaran')).reduce((a, b) => a + Number(b.qty), 0);
+
+            const countM3688 = radios.filter(r => r.model === 'XiR M3688').length;
+            const countC2660 = radios.filter(r => r.model === 'XiR C2660').length;
+            const countCP1660 = radios.filter(r => r.model === 'CP 1660').length;
+
+            document.getElementById('stat-total-radio').innerText = total;
+            document.getElementById('stat-good-radio').innerText = good;
+            document.getElementById('stat-damaged-radio').innerText = damaged;
+            document.getElementById('stat-expired-radio').innerText = expiredCount;
+            document.getElementById('stat-item-in').innerText = totalIn;
+            document.getElementById('stat-item-out').innerText = totalOut;
+
+            document.getElementById('count-xir-m3688').innerText = countM3688 + ' Unit';
+            document.getElementById('count-xir-c2660').innerText = countC2660 + ' Unit';
+            document.getElementById('count-cp1660').innerText = countCP1660 + ' Unit';
+
+            renderCharts(good, damaged, countM3688, countC2660, countCP1660);
+        }
+
+        function renderCharts(good, damaged, m3688, c2660, cp1660) {
+            const ctxStatus = document.getElementById('radioStatusChart').getContext('2d');
+            if (statusChartInstance) statusChartInstance.destroy();
+
+            statusChartInstance = new Chart(ctxStatus, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Kondisi Baik / Selesai', 'Rusak / Service'],
+                    datasets: [{ data: [good, damaged], backgroundColor: ['#10b981', '#f43f5e'], borderWidth: 2 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            });
+
+            const ctxExpd = document.getElementById('expdChart').getContext('2d');
+            if (expdChartInstance) expdChartInstance.destroy();
+
+            expdChartInstance = new Chart(ctxExpd, {
+                type: 'bar',
+                data: {
+                    labels: ['XiR M3688 (RIG)', 'XiR C2660', 'CP 1660'],
+                    datasets: [{ label: 'Jumlah Unit Per Tipe Radio', data: [m3688, c2660, cp1660], backgroundColor: ['#f59e0b', '#3b82f6', '#10b981'], borderRadius: 6 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+        }
+
+        // ==================== MASTER RADIO ====================
+        function renderRadioTable() {
+            const searchVal = document.getElementById('search-radio').value.toLowerCase();
+            const filterModel = document.getElementById('filter-radio-model').value;
+            const filterStatus = document.getElementById('filter-radio-status').value;
+
+            const filtered = radios.filter(r => {
+                const matchesSearch = (r.itemName && r.itemName.toLowerCase().includes(searchVal)) ||
+                                      (r.pttId && r.pttId.toLowerCase().includes(searchVal)) ||
+                                      r.sn.toLowerCase().includes(searchVal) ||
+                                      r.model.toLowerCase().includes(searchVal) ||
+                                      (r.pic && r.pic.toLowerCase().includes(searchVal)) ||
+                                      (r.dept && r.dept.toLowerCase().includes(searchVal));
+                const matchesModel = filterModel === 'ALL' || r.model === filterModel;
+                const matchesStatus = filterStatus === 'ALL' || r.status === filterStatus;
+                return matchesSearch && matchesModel && matchesStatus;
+            });
+
+            const tbody = document.getElementById('radio-table-body');
+            const thAction = document.getElementById('th-action-radio');
+            tbody.innerHTML = '';
+
+            if (currentRole === 'viewer') {
+                if(thAction) thAction.style.display = 'none';
+            } else {
+                if(thAction) thAction.style.display = 'table-cell';
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="13" class="text-center py-8 text-slate-400">Tidak ada data radio yang sesuai.</td></tr>`;
+            } else {
+                filtered.forEach((r, idx) => {
+                    const expdInfo = getExpdCountdownInfo(r.expdDate);
+                    let actionHtml = '';
+                    if (currentRole !== 'viewer') {
+                        actionHtml = `
+                            <td class="p-3.5 text-center no-print">
+                                <div class="flex items-center justify-center space-x-2">
+                                    <button onclick="editRadio('${r.id}')" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
+                                    <button onclick="deleteRadio('${r.id}')" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            </td>`;
+                    }
+
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="p-3.5 text-slate-400 font-medium">${idx + 1}</td>
+                            <td class="p-3.5 font-bold text-slate-900">${escapeHtml(r.itemName || '-')}</td>
+                            <td class="p-3.5 font-mono font-bold text-slate-900">${escapeHtml(r.sn)}</td>
+                            <td class="p-3.5 font-extrabold text-amber-600 bg-amber-50/50 rounded-md font-mono">${escapeHtml(r.pttId || '-')}</td>
+                            <td class="p-3.5 font-semibold text-slate-800">${escapeHtml(r.model)}</td>
+                            <td class="p-3.5 text-slate-600 font-medium">${formatDate(r.commissionDate)}</td>
+                            <td class="p-3.5 text-slate-700 font-bold">${r.expdPeriod || 1} Thn</td>
+                            <td class="p-3.5 font-semibold text-slate-900">${formatDate(r.expdDate)}</td>
+                            <td class="p-3.5"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold border ${expdInfo.bg}">${expdInfo.label}</span></td>
+                            <td class="p-3.5">${getRadioStatusBadge(r.status)}</td>
+                            <td class="p-3.5 font-medium text-slate-800">${escapeHtml(r.pic || '-')}</td>
+                            <td class="p-3.5 text-slate-600 font-medium">${escapeHtml(r.dept || '-')}</td>
+                            ${actionHtml}
+                        </tr>
+                    `;
+                });
+            }
+
+            document.getElementById('radio-count-footer').innerText = `Menampilkan ${filtered.length} dari total ${radios.length} unit master radio`;
+        }
+
+        function openRadioModal(id = null) {
+            if (currentRole === 'viewer') {
+                showToast('Akses Viewer hanya untuk melihat data.', 'error');
+                return;
+            }
+            document.getElementById('form-radio').reset();
+            document.getElementById('radio-id').value = '';
+            document.getElementById('custom-model-container').classList.add('hidden');
+            document.getElementById('modal-radio-title').innerHTML = `<i class="fa-solid fa-walkie-talkie text-amber-400"></i> Master Radio Motorola`;
+
+            if (id) {
+                const r = radios.find(item => item.id === id);
+                if (r) {
+                    document.getElementById('radio-id').value = r.id;
+                    document.getElementById('radio-item-name').value = r.itemName || '';
+                    document.getElementById('radio-sn').value = r.sn;
+                    document.getElementById('radio-ptt-id').value = r.pttId || '';
+                    
+                    if (['XiR M3688', 'XiR C2660', 'CP 1660'].includes(r.model)) {
+                        document.getElementById('radio-model').value = r.model;
+                    } else {
+                        document.getElementById('radio-model').value = 'CUSTOM';
+                        document.getElementById('custom-model-container').classList.remove('hidden');
+                        document.getElementById('radio-custom-model').value = r.model;
+                    }
+
+                    document.getElementById('radio-commission-date').value = r.commissionDate || '';
+                    document.getElementById('radio-expd-period').value = r.expdPeriod || 1;
+                    document.getElementById('radio-status').value = r.status;
+                    document.getElementById('radio-pic').value = r.pic || '';
+                    document.getElementById('radio-dept').value = r.dept || '';
+                    document.getElementById('radio-notes').value = r.notes || '';
+                    calculateExpdDate();
+                }
+            } else {
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('radio-commission-date').value = today;
+                calculateExpdDate();
+            }
+            document.getElementById('modal-radio').classList.remove('hidden');
+        }
+
+        function saveRadio(e) {
+            e.preventDefault();
+            if (currentRole === 'viewer') return;
+
+            const id = document.getElementById('radio-id').value;
+            const itemName = document.getElementById('radio-item-name').value.trim();
+            const sn = document.getElementById('radio-sn').value.trim().toUpperCase();
+            const pttId = document.getElementById('radio-ptt-id').value.trim().toUpperCase();
+            
+            let model = document.getElementById('radio-model').value;
+            if (model === 'CUSTOM') model = document.getElementById('radio-custom-model').value.trim();
+
+            const commissionDate = document.getElementById('radio-commission-date').value;
+            const expdPeriod = parseInt(document.getElementById('radio-expd-period').value);
+            
+            const comm = new Date(commissionDate);
+            comm.setFullYear(comm.getFullYear() + expdPeriod);
+            const expdDate = comm.toISOString().split('T')[0];
+
+            const status = document.getElementById('radio-status').value;
+            const pic = document.getElementById('radio-pic').value.trim();
+            const dept = document.getElementById('radio-dept').value.trim();
+            const notes = document.getElementById('radio-notes').value.trim();
+
+            if (id) {
+                const idx = radios.findIndex(r => r.id === id);
+                if (idx !== -1) radios[idx] = { id, itemName, sn, pttId, model, commissionDate, expdPeriod, expdDate, status, pic, dept, notes };
+                showToast('Master Radio berhasil diperbarui.', 'success');
+            } else {
+                if (radios.some(r => r.sn === sn)) {
+                    showToast(`SN ${sn} sudah terdaftar!`, 'error');
+                    return;
+                }
+                radios.push({ id: 'R-' + Date.now(), itemName, sn, pttId, model, commissionDate, expdPeriod, expdDate, status, pic, dept, notes });
+                showToast('Master Radio baru ditambahkan.', 'success');
+            }
+
+            saveToLocalStorage();
+            closeModal('modal-radio');
+            renderRadioTable();
+            updateDashboard();
+        }
+
+        function editRadio(id) { openRadioModal(id); }
+        function deleteRadio(id) {
+            if (currentRole === 'viewer') return;
+            if (confirm('Hapus radio ini?')) {
+                radios = radios.filter(r => r.id !== id);
+                saveToLocalStorage();
+                renderRadioTable();
+                updateDashboard();
+                showToast('Radio dihapus.', 'info');
+            }
+        }
+
+        // ==================== INVENTORY LOG ====================
+        function populateInventoryPTTSelect() {
+            const select = document.getElementById('inventory-ptt-id');
+            select.innerHTML = '<option value="">-- Tidak Terikat ID PTT --</option>';
+            radios.forEach(r => {
+                select.innerHTML += `<option value="${r.pttId}">${r.pttId} - ${r.itemName} (${r.model})</option>`;
+            });
+        }
+
+        function renderInventoryTable() {
+            const searchVal = document.getElementById('search-inventory').value.toLowerCase();
+            const filterType = document.getElementById('filter-inventory-type').value;
+
+            const filtered = inventory.filter(i => {
+                const matchesSearch = i.name.toLowerCase().includes(searchVal) ||
+                                      (i.pttId && i.pttId.toLowerCase().includes(searchVal)) ||
+                                      i.person.toLowerCase().includes(searchVal) ||
+                                      (i.dept && i.dept.toLowerCase().includes(searchVal));
+                const matchesType = filterType === 'ALL' || i.type === filterType;
+                return matchesSearch && matchesType;
+            });
+
+            const tbody = document.getElementById('inventory-table-body');
+            const thAction = document.getElementById('th-action-inventory');
+            tbody.innerHTML = '';
+
+            if (currentRole === 'viewer') {
+                if(thAction) thAction.style.display = 'none';
+            } else {
+                if(thAction) thAction.style.display = 'table-cell';
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-slate-400">Belum ada riwayat transaksi barang.</td></tr>`;
+            } else {
+                filtered.forEach(i => {
+                    let actionHtml = '';
+                    if (currentRole !== 'viewer') {
+                        actionHtml = `
+                            <td class="p-3.5 text-center no-print">
+                                <div class="flex items-center justify-center space-x-2">
+                                    <button onclick="editInventory('${i.id}')" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"><i class="fa-solid fa-pen-to-square"></i></button>
+                                    <button onclick="deleteInventory('${i.id}')" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            </td>`;
+                    }
+
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="p-3.5 font-medium whitespace-nowrap">${formatDate(i.date)}</td>
+                            <td class="p-3.5">${i.type.includes('Penerimaan') ? '<span class="px-2.5 py-1 text-[11px] font-bold bg-teal-100 text-teal-800 rounded-full border border-teal-200">Penerimaan</span>' : '<span class="px-2.5 py-1 text-[11px] font-bold bg-amber-100 text-amber-800 rounded-full border border-amber-200">Pengeluaran</span>'}</td>
+                            <td class="p-3.5 font-mono font-bold text-amber-600">${escapeHtml(i.pttId || '-')}</td>
+                            <td class="p-3.5 font-semibold text-slate-900">${escapeHtml(i.name)}</td>
+                            <td class="p-3.5 font-extrabold text-slate-800">${i.qty}</td>
+                            <td class="p-3.5 font-medium text-slate-800">${escapeHtml(i.person)}</td>
+                            <td class="p-3.5 text-slate-600 font-medium">${escapeHtml(i.dept || '-')}</td>
+                            <td class="p-3.5 text-slate-500 max-w-xs truncate">${escapeHtml(i.notes || '-')}</td>
+                            ${actionHtml}
+                        </tr>
+                    `;
+                });
+            }
+            document.getElementById('inventory-count-footer').innerText = `Menampilkan ${filtered.length} transaksi barang`;
+        }
+
+        function openInventoryModal(id = null) {
+            if (currentRole === 'viewer') return;
+            populateInventoryPTTSelect();
+            document.getElementById('form-inventory').reset();
+            document.getElementById('inventory-id').value = '';
+            document.getElementById('inventory-date').value = new Date().toISOString().split('T')[0];
+
+            if (id) {
+                const item = inventory.find(i => i.id === id);
+                if (item) {
+                    document.getElementById('inventory-id').value = item.id;
+                    document.getElementById('inventory-type').value = item.type;
+                    document.getElementById('inventory-date').value = item.date;
+                    document.getElementById('inventory-ptt-id').value = item.pttId || '';
+                    document.getElementById('inventory-name').value = item.name;
+                    document.getElementById('inventory-qty').value = item.qty;
+                    document.getElementById('inventory-person').value = item.person;
+                    document.getElementById('inventory-dept').value = item.dept || '';
+                    document.getElementById('inventory-notes').value = item.notes || '';
+                }
+            }
+            document.getElementById('modal-inventory').classList.remove('hidden');
+        }
+
+        function saveInventory(e) {
+            e.preventDefault();
+            if (currentRole === 'viewer') return;
+            const id = document.getElementById('inventory-id').value;
+            const type = document.getElementById('inventory-type').value;
+            const date = document.getElementById('inventory-date').value;
+            const pttId = document.getElementById('inventory-ptt-id').value;
+            const name = document.getElementById('inventory-name').value.trim();
+            const qty = Number(document.getElementById('inventory-qty').value);
+            const person = document.getElementById('inventory-person').value.trim();
+            const dept = document.getElementById('inventory-dept').value.trim();
+            const notes = document.getElementById('inventory-notes').value.trim();
+
+            if (id) {
+                const idx = inventory.findIndex(i => i.id === id);
+                if (idx !== -1) inventory[idx] = { id, type, date, pttId, name, qty, person, dept, notes };
+                showToast('Transaksi diperbarui.', 'success');
+            } else {
+                inventory.push({ id: 'I-' + Date.now(), type, date, pttId, name, qty, person, dept, notes });
+                showToast('Transaksi disimpan.', 'success');
+            }
+            saveToLocalStorage();
+            closeModal('modal-inventory');
+            renderInventoryTable();
+            updateDashboard();
+        }
+
+        function editInventory(id) { openInventoryModal(id); }
+        function deleteInventory(id) {
+            if (currentRole === 'viewer') return;
+            if (confirm('Hapus transaksi ini?')) {
+                inventory = inventory.filter(i => i.id !== id);
+                saveToLocalStorage();
+                renderInventoryTable();
+                updateDashboard();
+                showToast('Transaksi dihapus.', 'info');
+            }
+        }
+
+        // ==================== REPAIR LOG (PERBAIKAN & SERVICE) ====================
+        function populateRepairRadioSelect() {
+            const select = document.getElementById('repair-radio-id');
+            select.innerHTML = '<option value="">-- Pilih Unit Radio Motorola --</option>';
+            radios.forEach(r => {
+                select.innerHTML += `<option value="${r.id}">${r.itemName} - ${r.model} (SN: ${r.sn})</option>`;
+            });
+        }
+
+        function renderRepairTable() {
+            const searchVal = document.getElementById('search-repair').value.toLowerCase();
+            const filtered = repairs.filter(r => {
+                return (r.itemName && r.itemName.toLowerCase().includes(searchVal)) ||
+                       r.sn.toLowerCase().includes(searchVal) ||
+                       r.issue.toLowerCase().includes(searchVal) ||
+                       (r.tech && r.tech.toLowerCase().includes(searchVal));
+            });
+
+            const tbody = document.getElementById('repair-table-body');
+            const thAction = document.getElementById('th-action-repair');
+            tbody.innerHTML = '';
+
+            if (currentRole === 'viewer') {
+                if(thAction) thAction.style.display = 'none';
+            } else {
+                if(thAction) thAction.style.display = 'table-cell';
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-slate-400">Tidak ada riwayat perbaikan.</td></tr>`;
+            } else {
+                filtered.forEach(r => {
+                    let actionHtml = '';
+                    if (currentRole !== 'viewer') {
+                        actionHtml = `
+                            <td class="p-3.5 text-center no-print">
+                                <div class="flex items-center justify-center space-x-2">
+                                    <button onclick="editRepair('${r.id}')" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"><i class="fa-solid fa-pen-to-square"></i></button>
+                                    <button onclick="deleteRepair('${r.id}')" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            </td>`;
+                    }
+
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition">
+                            <!-- DIGANTI: Menampilkan Nama Barang / Unit alih-alih ID PTT -->
+                            <td class="p-3.5 font-bold text-slate-900">${escapeHtml(r.itemName || '-')}</td>
+                            <td class="p-3.5 font-mono font-bold text-slate-900">${escapeHtml(r.sn)}</td>
+                            <td class="p-3.5 font-medium whitespace-nowrap">${formatDate(r.date)}</td>
+                            <td class="p-3.5 font-medium text-slate-800 max-w-xs">${escapeHtml(r.issue)}</td>
+                            <td class="p-3.5">${getRadioStatusBadge(r.status)}</td>
+                            <td class="p-3.5 font-medium text-slate-700">${escapeHtml(r.tech || '-')}</td>
+                            <td class="p-3.5 text-slate-600 font-medium whitespace-nowrap">${r.finishDate ? formatDate(r.finishDate) : '-'}</td>
+                            <td class="p-3.5 text-slate-500 max-w-xs truncate">${escapeHtml(r.notes || '-')}</td>
+                            ${actionHtml}
+                        </tr>
+                    `;
+                });
+            }
+            document.getElementById('repair-count-footer').innerText = `Menampilkan ${filtered.length} log perbaikan`;
+        }
+
+        function openRepairModal(id = null) {
+            if (currentRole === 'viewer') return;
+            populateRepairRadioSelect();
+            document.getElementById('form-repair').reset();
+            document.getElementById('repair-id').value = '';
+            document.getElementById('repair-report-date').value = new Date().toISOString().split('T')[0];
+
+            if (id) {
+                const rep = repairs.find(r => r.id === id);
+                if (rep) {
+                    document.getElementById('repair-id').value = rep.id;
+                    document.getElementById('repair-radio-id').value = rep.radioId || '';
+                    document.getElementById('repair-report-date').value = rep.date;
+                    document.getElementById('repair-issue').value = rep.issue;
+                    document.getElementById('repair-status').value = rep.status;
+                    document.getElementById('repair-technician').value = rep.tech || '';
+                    document.getElementById('repair-finish-date').value = rep.finishDate || '';
+                    document.getElementById('repair-notes').value = rep.notes || '';
+                }
+            }
+            document.getElementById('modal-repair').classList.remove('hidden');
+        }
+
+        function saveRepair(e) {
+            e.preventDefault();
+            if (currentRole === 'viewer') return;
+            const id = document.getElementById('repair-id').value;
+            const radioId = document.getElementById('repair-radio-id').value;
+            const date = document.getElementById('repair-report-date').value;
+            const issue = document.getElementById('repair-issue').value.trim();
+            const status = document.getElementById('repair-status').value;
+            const tech = document.getElementById('repair-technician').value.trim();
+            const finishDate = document.getElementById('repair-finish-date').value;
+            const notes = document.getElementById('repair-notes').value.trim();
+
+            const selectedRadio = radios.find(r => r.id === radioId);
+            const itemName = selectedRadio ? selectedRadio.itemName : 'Unit Tidak Terikat';
+            const sn = selectedRadio ? selectedRadio.sn : '-';
+
+            if (id) {
+                const idx = repairs.findIndex(r => r.id === id);
+                if (idx !== -1) repairs[idx] = { id, radioId, itemName, sn, date, issue, status, tech, finishDate, notes };
+                showToast('Log perbaikan diperbarui.', 'success');
+            } else {
+                repairs.push({ id: 'REP-' + Date.now(), radioId, itemName, sn, date, issue, status, tech, finishDate, notes });
+                showToast('Log perbaikan disimpan.', 'success');
+            }
+
+            if (selectedRadio) selectedRadio.status = status;
+
+            saveToLocalStorage();
+            closeModal('modal-repair');
+            renderRepairTable();
+            renderRadioTable();
+            updateDashboard();
+        }
+
+        function editRepair(id) { openRepairModal(id); }
+        function deleteRepair(id) {
+            if (currentRole === 'viewer') return;
+            if (confirm('Hapus log perbaikan ini?')) {
+                repairs = repairs.filter(r => r.id !== id);
+                saveToLocalStorage();
+                renderRepairTable();
+                updateDashboard();
+                showToast('Log dihapus.', 'info');
+            }
+        }
+
+        // ==================== HELPER UTILITIES ====================
+        function closeModal(modalId) { document.getElementById(modalId).classList.add('hidden'); }
+
+        function getRadioStatusBadge(status) {
+            switch(status) {
+                case 'Baik': return `<span class="px-2.5 py-1 text-[11px] font-bold bg-emerald-100 text-emerald-800 rounded-full border border-emerald-200">Baik</span>`;
+                case 'Selesai Diperbaiki': return `<span class="px-2.5 py-1 text-[11px] font-bold bg-teal-100 text-teal-800 rounded-full border border-teal-200">Selesai Service</span>`;
+                case 'Rusak Ringan': return `<span class="px-2.5 py-1 text-[11px] font-bold bg-amber-100 text-amber-800 rounded-full border border-amber-200">Rusak Ringan</span>`;
+                case 'Rusak Berat': return `<span class="px-2.5 py-1 text-[11px] font-bold bg-rose-100 text-rose-800 rounded-full border border-rose-200">Rusak Berat</span>`;
+                case 'Dalam Perbaikan': return `<span class="px-2.5 py-1 text-[11px] font-bold bg-purple-100 text-purple-800 rounded-full border border-purple-200">In Service</span>`;
+                default: return `<span class="px-2.5 py-1 text-[11px] font-bold bg-slate-100 text-slate-800 rounded-full">${status}</span>`;
+            }
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const parts = dateString.split('-');
+            if(parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            return dateString;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>"']/g, function(m) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+            });
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            const msg = document.getElementById('toast-message');
+
+            msg.innerText = message;
+            if (type === 'success') icon.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i>`;
+            else if (type === 'error') icon.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-400"></i>`;
+            else icon.innerHTML = `<i class="fa-solid fa-circle-info text-blue-400"></i>`;
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => { toast.classList.add('translate-y-20', 'opacity-0'); }, 3000);
+        }
+
+        function exportTableToCSV(tableId, filename) {
+            const table = document.getElementById(tableId);
+            let csv = [];
+            const rows = table.querySelectorAll('tr');
+
+            for (let i = 0; i < rows.length; i++) {
+                const row = [], cols = rows[i].querySelectorAll('td, th');
+                for (let j = 0; j < cols.length; j++) {
+                    if (cols[j].classList.contains('no-print')) continue;
+                    let text = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, ' ').replace(/"/g, '""');
+                    row.push('"' + text + '"');
+                }
+                csv.push(row.join(','));
+            }
+
+            const csvFile = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const downloadLink = document.createElement('a');
+            downloadLink.download = filename;
+            downloadLink.href = window.URL.createObjectURL(csvFile);
+            downloadLink.style.display = 'none';
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+            showToast(`File ${filename} berhasil diunduh.`, 'info');
+        }
+    </script>
+</body>
+</html>
