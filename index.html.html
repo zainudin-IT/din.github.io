@@ -87,10 +87,10 @@
             
             <form onsubmit="handleLogin(event)" class="p-6 space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Username *</label>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Email *</label>
                     <div class="relative">
                         <i class="fa-solid fa-user absolute left-3 top-3.5 text-slate-400 text-xs"></i>
-                        <input type="text" id="login-username" required placeholder="Masukkan Username..." class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none font-semibold text-slate-800 transition">
+                        <input type="text" id="login-username" required placeholder="Masukkan email Firebase..." class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none font-semibold text-slate-800 transition">
                     </div>
                 </div>
 
@@ -899,41 +899,57 @@
         }
 
         // ==================== AUTH LOGIN / LOGOUT ====================
-        function handleLogin(e) {
+        async function handleLogin(e) {
             e.preventDefault();
-            const username = document.getElementById('login-username').value.trim().toLowerCase();
-            const password = document.getElementById('login-password').value.trim();
+            const email = document.getElementById('login-username').value.trim().toLowerCase();
+            const password = document.getElementById('login-password').value;
 
-            if (username === credentials.server.user && password === credentials.server.pass) {
-                currentRole = 'server';
-            } else if (username === credentials.admin.user && password === credentials.admin.pass) {
-                currentRole = 'admin';
-            } else if (username === credentials.viewer.user && password === credentials.viewer.pass) {
-                currentRole = 'viewer';
-            } else {
-                showToast('Username atau Password salah! Apabila ingin akses hubungi Zainudin IT BMC', 'error');
+            if (!window.firebaseBridge) {
+                showToast('Koneksi Firebase belum siap. Muat ulang halaman.', 'error');
                 return;
             }
 
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('main-app-container').classList.remove('hidden');
+            try {
+                const session = await window.firebaseBridge.login(email, password);
+                currentRole = session.role;
 
-            applyRolePermissions();
-            updateDashboard();
-            renderRadioTable();
-            renderInventoryTable();
-            renderRepairTable();
+                const cloudData = await window.firebaseBridge.loadData();
+                if (cloudData) {
+                    radios = cloudData.radios;
+                    inventory = cloudData.inventory;
+                    repairs = cloudData.repairs;
+                    localStorage.setItem(STORAGE_KEY_RADIOS, JSON.stringify(radios));
+                    localStorage.setItem(STORAGE_KEY_INVENTORY, JSON.stringify(inventory));
+                    localStorage.setItem(STORAGE_KEY_REPAIRS, JSON.stringify(repairs));
+                }
 
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('radio-commission-date').value = today;
-            document.getElementById('inventory-date').value = today;
-            document.getElementById('repair-report-date').value = today;
-            calculateExpdDate();
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('main-app-container').classList.remove('hidden');
 
-            showToast(`Berhasil masuk sebagai ${currentRole.toUpperCase()}`, 'success');
+                applyRolePermissions();
+                updateDashboard();
+                renderRadioTable();
+                renderInventoryTable();
+                renderRepairTable();
+
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('radio-commission-date').value = today;
+                document.getElementById('inventory-date').value = today;
+                document.getElementById('repair-report-date').value = today;
+                calculateExpdDate();
+
+                showToast(cloudData
+                    ? 'Login berhasil. Data dimuat dari Firebase Cloud.'
+                    : 'Login berhasil. Firestore masih kosong; data lokal dipertahankan sampai migrasi dilakukan.',
+                    'success');
+            } catch (error) {
+                console.error('Firebase login error:', error);
+                showToast(error.message || 'Login Firebase gagal. Periksa email dan password.', 'error');
+            }
         }
 
-        function handleLogout() {
+        async function handleLogout() {
+            try { if (window.firebaseBridge) await window.firebaseBridge.logout(); } catch (error) { console.error(error); }
             currentRole = null;
             document.getElementById('main-app-container').classList.add('hidden');
             document.getElementById('login-screen').classList.remove('hidden');
@@ -1071,6 +1087,16 @@
             localStorage.setItem(STORAGE_KEY_RADIOS, JSON.stringify(radios));
             localStorage.setItem(STORAGE_KEY_INVENTORY, JSON.stringify(inventory));
             localStorage.setItem(STORAGE_KEY_REPAIRS, JSON.stringify(repairs));
+
+            // Sinkronkan ke cloud hanya jika sesi Firebase sudah aktif.
+            if (window.firebaseBridge && currentRole) {
+                window.firebaseBridge.saveData({ radios, inventory, repairs })
+                    .then(() => console.info('RadioTrack Pro: data tersinkron ke Firestore.'))
+                    .catch(error => {
+                        console.error('Firestore sync error:', error);
+                        showToast('Data tersimpan lokal, tetapi sinkronisasi cloud gagal: ' + (error.message || ''), 'error');
+                    });
+            }
         }
 
         function switchTab(tabName) {
@@ -1700,5 +1726,85 @@
             showToast(`File ${filename} berhasil diunduh.`, 'info');
         }
     </script>
+
+    <!-- Firebase Cloud: Authentication + Firestore -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import {
+            getAuth, signInWithEmailAndPassword, signOut
+        } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+        import {
+            getFirestore, doc, getDoc, setDoc, serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAUkW6QKHTlIs7qBenQ5Z__dTx8IgVjP2A",
+            authDomain: "zainudin-it.firebaseapp.com",
+            projectId: "zainudin-it",
+            storageBucket: "zainudin-it.firebasestorage.app",
+            messagingSenderId: "1083499797787",
+            appId: "1:1083499797787:web:be129da30bbdeb36d547be",
+            measurementId: "G-Y5DPQFVM75"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const OWNER_EMAIL = "zainudinxitkj@gmail.com";
+
+        window.firebaseBridge = {
+            async login(email, password) {
+                const result = await signInWithEmailAndPassword(auth, email, password);
+                const user = result.user;
+                let role = "viewer";
+
+                if ((user.email || "").toLowerCase() === OWNER_EMAIL) {
+                    role = "server";
+                } else {
+                    const profile = await getDoc(doc(db, "users", user.uid));
+                    if (!profile.exists() || !["admin", "viewer", "server"].includes(profile.data().role)) {
+                        await signOut(auth);
+                        throw new Error("Akun belum diberi peran RadioTrack Pro. Hubungi administrator.");
+                    }
+                    role = profile.data().role;
+                }
+
+                return { uid: user.uid, email: user.email, role };
+            },
+
+            async loadData() {
+                const names = ["radios", "inventory", "repairs"];
+                const snapshots = await Promise.all(names.map(name => getDoc(doc(db, "appData", name))));
+                if (snapshots.every(snapshot => !snapshot.exists())) return null;
+
+                const values = snapshots.map(snapshot => snapshot.exists() && Array.isArray(snapshot.data().items)
+                    ? snapshot.data().items : []);
+                return { radios: values[0], inventory: values[1], repairs: values[2] };
+            },
+
+            async saveData(data) {
+                const user = auth.currentUser;
+                if (!user) throw new Error("Sesi Firebase tidak aktif. Silakan login kembali.");
+                const entries = [
+                    ["radios", data.radios],
+                    ["inventory", data.inventory],
+                    ["repairs", data.repairs]
+                ];
+                await Promise.all(entries.map(([name, items]) =>
+                    setDoc(doc(db, "appData", name), {
+                        items,
+                        updatedAt: serverTimestamp(),
+                        updatedBy: user.uid
+                    })
+                ));
+            },
+
+            async logout() {
+                await signOut(auth);
+            }
+        };
+        console.info("RadioTrack Pro: Firebase siap.");
+    </script>
+
 </body>
 </html>
