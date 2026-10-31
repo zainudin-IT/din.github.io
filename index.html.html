@@ -1098,10 +1098,14 @@
         }
 
         function getBackupSection(data, key, aliases, label) {
-            let value = data[key];
+            // Backup lama membungkus seluruh data di dalam properti "data".
+            const source = data && data.data && typeof data.data === 'object'
+                ? data.data
+                : data;
+            let value = source[key];
             if (value === undefined) {
                 for (const alias of aliases) {
-                    if (data[alias] !== undefined) { value = data[alias]; break; }
+                    if (source[alias] !== undefined) { value = source[alias]; break; }
                 }
             }
             return parseBackupArray(value, label);
