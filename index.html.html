@@ -1011,9 +1011,8 @@
                 restrictedNotice.classList.add('hidden');
                 notice.innerText = 'Anda login sebagai SERVER. Anda berhak mengubah kredensial dan melakukan reset data sistem.';
 
-                document.getElementById('input-new-server-user').value = credentials.server.user;
-                document.getElementById('input-new-server-pass').value = '';
                 document.getElementById('input-new-admin-user').value = credentials.admin.user;
+                document.getElementById('input-new-server-user')?.value = '';
                 document.getElementById('input-new-admin-pass').value = '';
                 document.getElementById('input-new-viewer-user').value = credentials.viewer.user;
                 document.getElementById('input-new-viewer-pass').value = '';
