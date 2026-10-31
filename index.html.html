@@ -544,6 +544,20 @@
                     </button>
                 </div>
 
+                <!-- Migrasi data lama ke Firebase Cloud -->
+                <div id="server-only-import-box" class="space-y-3 border-t pt-4">
+                    <h4 class="text-xs font-bold text-emerald-700 uppercase tracking-wide flex items-center gap-1.5">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Migrasi Backup ke Firebase Cloud
+                    </h4>
+                    <p class="text-[11px] text-slate-600">Pilih file backup JSON dari aplikasi lama. Sistem akan memeriksa isi file dan hanya mengimpor jika Firestore masih kosong. Data cloud yang sudah ada tidak akan ditimpa.</p>
+                    <input type="file" id="radio-backup-file" accept=".json,application/json" class="block w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-slate-200 file:text-slate-800 file:font-bold">
+                    <div id="radio-backup-preview" class="hidden rounded-lg border border-slate-200 bg-slate-50 p-3 text-[11px] text-slate-700"></div>
+                    <button id="btn-import-radio-backup" onclick="importRadioBackupToCloud()" disabled class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold text-xs rounded-xl transition">
+                        Periksa File Backup
+                    </button>
+                    <p id="radio-backup-status" class="text-[11px] text-slate-500">Belum ada file yang dipilih.</p>
+                </div>
+
                 <!-- Bagian Reset Mode System Data (HANYA MUNCUL DI AKUN SERVER, DITUTUP/DISEMBUNYIKAN UNTUK ADMIN) -->
                 <div id="reset-system-section" class="space-y-3 border-t pt-4">
                     <h4 class="text-xs font-bold text-rose-600 uppercase tracking-wide flex items-center gap-1.5">
@@ -1067,6 +1081,105 @@
                 renderRepairTable();
                 closeModal('modal-settings');
                 showToast('Sistem berhasil di-reset ke mode awal.', 'info');
+            }
+        }
+
+        // ==================== MIGRASI BACKUP LAMA KE FIREBASE ====================
+        let pendingRadioBackup = null;
+
+        function parseBackupArray(value, label) {
+            if (typeof value === 'string') {
+                try { value = JSON.parse(value); } catch (_) {
+                    throw new Error('Format bagian ' + label + ' tidak valid.');
+                }
+            }
+            if (!Array.isArray(value)) throw new Error('Bagian ' + label + ' tidak ditemukan atau bukan daftar data.');
+            return value;
+        }
+
+        function getBackupSection(data, key, aliases, label) {
+            let value = data[key];
+            if (value === undefined) {
+                for (const alias of aliases) {
+                    if (data[alias] !== undefined) { value = data[alias]; break; }
+                }
+            }
+            return parseBackupArray(value, label);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const picker = document.getElementById('radio-backup-file');
+            if (picker) picker.addEventListener('change', async (event) => {
+                const file = event.target.files && event.target.files[0];
+                const preview = document.getElementById('radio-backup-preview');
+                const button = document.getElementById('btn-import-radio-backup');
+                const status = document.getElementById('radio-backup-status');
+                pendingRadioBackup = null;
+                button.disabled = true;
+                preview.classList.add('hidden');
+                if (!file) { status.textContent = 'Belum ada file yang dipilih.'; return; }
+                try {
+                    const raw = await file.text();
+                    const parsed = JSON.parse(raw);
+                    const radiosData = getBackupSection(parsed, 'bmc_radios_v5', ['radios', 'radio'], 'Master Radio');
+                    const inventoryData = getBackupSection(parsed, 'bmc_inventory_v5', ['inventory', 'inventories'], 'Inventory');
+                    const repairsData = getBackupSection(parsed, 'bmc_repairs_v5', ['repairs', 'repair'], 'Perbaikan');
+                    pendingRadioBackup = { radios: radiosData, inventory: inventoryData, repairs: repairsData, fileName: file.name };
+                    preview.innerHTML = '<strong>File valid: ' + file.name.replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch])) + '</strong><ul class="mt-1 list-disc pl-5"><li>Master Radio: ' + radiosData.length + ' data</li><li>Inventory: ' + inventoryData.length + ' data</li><li>Perbaikan: ' + repairsData.length + ' data</li></ul>';
+                    preview.classList.remove('hidden');
+                    button.disabled = false;
+                    button.textContent = 'Impor Backup ke Firebase';
+                    status.textContent = 'File berhasil dibaca. Data belum dikirim ke cloud.';
+                } catch (error) {
+                    status.textContent = 'Gagal membaca backup: ' + (error.message || 'Format tidak dikenali.');
+                    button.textContent = 'Periksa File Backup';
+                }
+            });
+        });
+
+        async function importRadioBackupToCloud() {
+            const status = document.getElementById('radio-backup-status');
+            const button = document.getElementById('btn-import-radio-backup');
+            if (currentRole !== 'server') {
+                showToast('Impor backup hanya untuk akun SERVER.', 'error');
+                return;
+            }
+            if (!pendingRadioBackup || !window.firebaseBridge) {
+                showToast('Pilih dan periksa file backup terlebih dahulu.', 'error');
+                return;
+            }
+            if (!confirm('Pastikan file backup benar. Impor hanya akan berjalan jika Firestore benar-benar kosong. Lanjutkan?')) return;
+            button.disabled = true;
+            status.textContent = 'Memeriksa kondisi Firestore...';
+            try {
+                const existing = await window.firebaseBridge.loadData();
+                if (existing !== null) {
+                    throw new Error('Firestore sudah memiliki dokumen data. Impor dibatalkan agar data cloud tidak tertimpa.');
+                }
+                await window.firebaseBridge.saveData({
+                    radios: pendingRadioBackup.radios,
+                    inventory: pendingRadioBackup.inventory,
+                    repairs: pendingRadioBackup.repairs
+                });
+                radios = pendingRadioBackup.radios;
+                inventory = pendingRadioBackup.inventory;
+                repairs = pendingRadioBackup.repairs;
+                localStorage.setItem(STORAGE_KEY_RADIOS, JSON.stringify(radios));
+                localStorage.setItem(STORAGE_KEY_INVENTORY, JSON.stringify(inventory));
+                localStorage.setItem(STORAGE_KEY_REPAIRS, JSON.stringify(repairs));
+                updateDashboard();
+                renderRadioTable();
+                renderInventoryTable();
+                renderRepairTable();
+                status.textContent = 'Berhasil: ' + radios.length + ' radio, ' + inventory.length + ' transaksi inventory, ' + repairs.length + ' laporan perbaikan tersimpan di Firebase Cloud.';
+                button.textContent = 'Impor Selesai';
+                showToast('Backup berhasil diimpor ke Firebase Cloud.', 'success');
+                pendingRadioBackup = null;
+            } catch (error) {
+                status.textContent = 'Impor dibatalkan/gagal: ' + (error.message || 'Kesalahan tidak diketahui.');
+                button.disabled = false;
+                console.error('RadioTrack Pro backup import:', error);
+                showToast(error.message || 'Impor backup gagal.', 'error');
             }
         }
 
