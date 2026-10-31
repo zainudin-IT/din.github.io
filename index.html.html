@@ -87,10 +87,10 @@
             
             <form onsubmit="handleLogin(event)" class="p-6 space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Email *</label>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Username *</label>
                     <div class="relative">
                         <i class="fa-solid fa-user absolute left-3 top-3.5 text-slate-400 text-xs"></i>
-                        <input type="text" id="login-username" required placeholder="Masukkan email Firebase..." class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none font-semibold text-slate-800 transition">
+                        <input type="text" id="login-username" required placeholder="Masukkan username (server / admin / viewer)..." class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none font-semibold text-slate-800 transition">
                     </div>
                 </div>
 
@@ -515,12 +515,9 @@
                         <i class="fa-solid fa-key text-amber-500"></i> Kelola Username & Sandi Akun (Akses Server)
                     </h4>
                     
-                    <div class="space-y-3 bg-amber-50/50 p-3.5 rounded-xl border border-amber-200">
+                    <div class="space-y-2 bg-amber-50/50 p-3.5 rounded-xl border border-amber-200">
                         <p class="text-[11px] font-bold text-amber-900 uppercase">Akun Server</p>
-                        <div class="grid grid-cols-2 gap-2">
-                            <input type="text" id="input-new-server-user" placeholder="Username baru..." class="text-xs p-2 bg-white border border-slate-300 rounded-lg">
-                            <input type="password" id="input-new-server-pass" placeholder="Password baru..." class="text-xs p-2 bg-white border border-slate-300 rounded-lg">
-                        </div>
+                        <p class="text-xs text-slate-700">Username SERVER tetap <strong>server</strong>. Password SERVER mengikuti akun Firebase utama dan tidak diubah dari menu ini.</p>
                     </div>
 
                     <div class="space-y-3 bg-blue-50/50 p-3.5 rounded-xl border border-blue-200">
@@ -915,7 +912,7 @@
         // ==================== AUTH LOGIN / LOGOUT ====================
         async function handleLogin(e) {
             e.preventDefault();
-            const email = document.getElementById('login-username').value.trim().toLowerCase();
+            const username = document.getElementById('login-username').value.trim().toLowerCase();
             const password = document.getElementById('login-password').value;
 
             if (!window.firebaseBridge) {
@@ -924,7 +921,7 @@
             }
 
             try {
-                const session = await window.firebaseBridge.login(email, password);
+                const session = await window.firebaseBridge.login(username, password);
                 currentRole = session.role;
 
                 const cloudData = await window.firebaseBridge.loadData();
@@ -1031,31 +1028,59 @@
             document.getElementById('modal-settings').classList.remove('hidden');
         }
 
-        function saveNewCredentials() {
+        async function saveNewCredentials() {
             if (currentRole !== 'server') {
-                showToast('Hanya akun SERVER yang dapat mengubah kredensial!', 'error');
+                showToast('Hanya akun SERVER yang dapat mengelola akun!', 'error');
                 return;
             }
 
-            const sUser = document.getElementById('input-new-server-user').value.trim().toLowerCase();
-            const sPass = document.getElementById('input-new-server-pass').value.trim();
             const aUser = document.getElementById('input-new-admin-user').value.trim().toLowerCase();
-            const aPass = document.getElementById('input-new-admin-pass').value.trim();
+            const aPass = document.getElementById('input-new-admin-pass').value;
             const vUser = document.getElementById('input-new-viewer-user').value.trim().toLowerCase();
-            const vPass = document.getElementById('input-new-viewer-pass').value.trim();
+            const vPass = document.getElementById('input-new-viewer-pass').value;
 
-            if (sUser) credentials.server.user = sUser;
-            if (sPass) credentials.server.pass = sPass;
+            const accounts = [
+                { role: 'admin', username: aUser, password: aPass },
+                { role: 'viewer', username: vUser, password: vPass }
+            ].filter(account => account.username || account.password);
 
-            if (aUser) credentials.admin.user = aUser;
-            if (aPass) credentials.admin.pass = aPass;
+            if (!accounts.length) {
+                showToast('Isi username dan password ADMIN atau VIEWER yang ingin dibuat.', 'error');
+                return;
+            }
+            for (const account of accounts) {
+                if (!account.username || !account.password) {
+                    showToast('Username dan password harus diisi berpasangan.', 'error');
+                    return;
+                }
+                if (!/^[a-z0-9._-]{3,30}$/.test(account.username)) {
+                    showToast('Username harus 3–30 karakter: huruf kecil, angka, titik, garis bawah, atau tanda hubung.', 'error');
+                    return;
+                }
+                if (account.password.length < 6) {
+                    showToast('Password minimal 6 karakter.', 'error');
+                    return;
+                }
+            }
 
-            if (vUser) credentials.viewer.user = vUser;
-            if (vPass) credentials.viewer.pass = vPass;
-
-            localStorage.setItem(STORAGE_KEY_CREDS, JSON.stringify(credentials));
-            closeModal('modal-settings');
-            showToast('Username & Sandi berhasil diperbarui!', 'success');
+            const button = document.querySelector('#server-only-credentials-box button');
+            if (button) { button.disabled = true; button.innerText = 'Menyimpan akun ke Firebase...'; }
+            try {
+                for (const account of accounts) {
+                    await window.firebaseBridge.createManagedAccount(account.username, account.password, account.role);
+                    credentials[account.role] = { user: account.username, pass: '' };
+                }
+                localStorage.setItem(STORAGE_KEY_CREDS, JSON.stringify(credentials));
+                document.getElementById('input-new-admin-pass').value = '';
+                document.getElementById('input-new-viewer-pass').value = '';
+                closeModal('modal-settings');
+                showToast('Akun berhasil dibuat di Firebase. Login gunakan username dan password.', 'success');
+            } catch (error) {
+                console.error('Account creation error:', error);
+                showToast(error.message || 'Gagal membuat akun Firebase.', 'error');
+            } finally {
+                if (button) { button.disabled = false; button.innerText = 'Simpan Perubahan Kredensial Akun'; }
+            }
         }
 
         function executeSecureReset() {
@@ -1848,7 +1873,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
         import {
-            getAuth, signInWithEmailAndPassword, signOut
+            getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, deleteUser
         } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
         import {
             getFirestore, doc, getDoc, setDoc, serverTimestamp
@@ -1868,9 +1893,21 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         const OWNER_EMAIL = "zainudinxitkj@gmail.com";
+        const USER_EMAIL_DOMAIN = "radiotrackpro.com";
+        const accountApp = initializeApp(firebaseConfig, "RadioTrackAccountCreator");
+        const accountAuth = getAuth(accountApp);
+
+        function usernameToFirebaseEmail(username) {
+            const clean = String(username || "").trim().toLowerCase();
+            if (!/^[a-z0-9._-]{3,30}$/.test(clean)) {
+                throw new Error("Username tidak valid. Gunakan 3–30 karakter huruf kecil, angka, titik, garis bawah, atau tanda hubung.");
+            }
+            return clean === "server" ? OWNER_EMAIL : clean + "@" + USER_EMAIL_DOMAIN;
+        }
 
         window.firebaseBridge = {
-            async login(email, password) {
+            async login(username, password) {
+                const email = usernameToFirebaseEmail(username);
                 const result = await signInWithEmailAndPassword(auth, email, password);
                 const user = result.user;
                 let role = "viewer";
@@ -1879,14 +1916,49 @@
                     role = "server";
                 } else {
                     const profile = await getDoc(doc(db, "users", user.uid));
-                    if (!profile.exists() || !["admin", "viewer", "server"].includes(profile.data().role)) {
+                    if (!profile.exists() || !["admin", "viewer"].includes(profile.data().role)) {
                         await signOut(auth);
-                        throw new Error("Akun belum diberi peran RadioTrack Pro. Hubungi administrator.");
+                        throw new Error("Akun belum memiliki hak akses. Hubungi SERVER.");
                     }
                     role = profile.data().role;
                 }
 
-                return { uid: user.uid, email: user.email, role };
+                return { uid: user.uid, username, role };
+            },
+
+            async createManagedAccount(username, password, role) {
+                if (!auth.currentUser || (auth.currentUser.email || "").toLowerCase() !== OWNER_EMAIL) {
+                    throw new Error("Hanya akun SERVER yang dapat membuat akun.");
+                }
+                if (!["admin", "viewer"].includes(role)) {
+                    throw new Error("Jenis akun tidak valid.");
+                }
+                const email = usernameToFirebaseEmail(username);
+                let newUser = null;
+                try {
+                    const result = await createUserWithEmailAndPassword(accountAuth, email, password);
+                    newUser = result.user;
+                    await setDoc(doc(db, "users", newUser.uid), {
+                        username: String(username).trim().toLowerCase(),
+                        role,
+                        createdAt: serverTimestamp(),
+                        createdBy: auth.currentUser.uid
+                    });
+                    await signOut(accountAuth);
+                    return { uid: newUser.uid, username, role };
+                } catch (error) {
+                    if (newUser) {
+                        try { await deleteUser(newUser); } catch (_) {}
+                    }
+                    try { await signOut(accountAuth); } catch (_) {}
+                    if (error.code === "auth/email-already-in-use") {
+                        throw new Error("Username tersebut sudah terdaftar. Gunakan username lain.");
+                    }
+                    if (error.code === "auth/weak-password") {
+                        throw new Error("Password terlalu lemah. Gunakan minimal 6 karakter.");
+                    }
+                    throw error;
+                }
             },
 
             async loadData() {
