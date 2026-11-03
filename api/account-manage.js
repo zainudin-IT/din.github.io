@@ -1,4 +1,4 @@
-const { requireOwner } = require('./_firebase');
+const { requireOwner } = require('../lib/firebase-admin');
 const bcrypt = require('bcryptjs');
 
 module.exports = async function handler(req, res) {
