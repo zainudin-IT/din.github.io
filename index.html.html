@@ -844,8 +844,94 @@
         </div>
     </footer>
 
+
+    <!-- Firebase SDK: Authentication + Cloud Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
     <!-- JS Logic System -->
     <script>
+
+        // ==================== FIREBASE CLOUD ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyAUk6WQKHTlIs7qBenQ5Z__dTx8IgVjP2A",
+            authDomain: "zainudin-it.firebaseapp.com",
+            projectId: "zainudin-it",
+            storageBucket: "zainudin-it.firebasestorage.app",
+            messagingSenderId: "1083499797787",
+            appId: "1:1083499797787:web:be129da30bbdeb36d547be",
+            measurementId: "G-Y5DPQFVM75"
+        };
+
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const firebaseAuth = firebase.auth();
+        const firestoreDb = firebase.firestore();
+        let firebaseUser = null;
+        let currentUsername = "";
+        let cloudReady = false;
+        let cloudSaveQueue = Promise.resolve();
+
+        function usernameToEmail(value) {
+            const normalized = value.trim().toLowerCase();
+            const accountMap = {
+                "zainudin": "zainudinxitkj@gmail.com",
+                "server": "zainudinxitkj@gmail.com",
+                "zainudinxitkj@gmail.com": "zainudinxitkj@gmail.com",
+                "robi": "robi@radiotrackpro.com",
+                "robi@radiotrackpro.com": "robi@radiotrackpro.com",
+                "staf": "staf@radiotrackpro.com",
+                "staf@radiotrackpro.com": "staf@radiotrackpro.com"
+            };
+            return accountMap[normalized] || (normalized.includes("@") ? normalized : null);
+        }
+
+        async function loadCloudData() {
+            cloudReady = false;
+            const paths = ["radios", "inventory", "repairs"];
+            const snapshots = await Promise.all(
+                paths.map(name => firestoreDb.collection(name).doc("items").get())
+            );
+            const values = snapshots.map(snap => {
+                if (!snap.exists) return [];
+                const data = snap.data() || {};
+                return Array.isArray(data.items) ? data.items : [];
+            });
+
+            // Cloud is the source of truth. Never merge old local data into these arrays.
+            radios = values[0];
+            inventory = values[1];
+            repairs = values[2];
+            localStorage.setItem(STORAGE_KEY_RADIOS, JSON.stringify(radios));
+            localStorage.setItem(STORAGE_KEY_INVENTORY, JSON.stringify(inventory));
+            localStorage.setItem(STORAGE_KEY_REPAIRS, JSON.stringify(repairs));
+            cloudReady = true;
+        }
+
+        function syncCloudData() {
+            if (!cloudReady || !firebaseUser) return;
+            const uid = firebaseUser.uid;
+            const payloads = {
+                radios: radios,
+                inventory: inventory,
+                repairs: repairs
+            };
+            cloudSaveQueue = cloudSaveQueue.catch(() => {}).then(async () => {
+                await Promise.all(Object.entries(payloads).map(([name, items]) =>
+                    firestoreDb.collection(name).doc("items").set({
+                        items: items,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        updatedBy: uid
+                    }, { merge: true })
+                ));
+                showToast("Perubahan berhasil disimpan ke Firebase Cloud.", "success");
+            }).catch(error => {
+                console.error("Firebase cloud save error:", error);
+                showToast("Gagal menyimpan ke cloud: " + (error.message || error.code), "error");
+            });
+            return cloudSaveQueue;
+        }
+
         const STORAGE_KEY_RADIOS = 'bmc_radios_v5';
         const STORAGE_KEY_INVENTORY = 'bmc_inventory_v5';
         const STORAGE_KEY_REPAIRS = 'bmc_repairs_v5';
@@ -899,47 +985,98 @@
         }
 
         // ==================== AUTH LOGIN / LOGOUT ====================
-        function handleLogin(e) {
+        async function handleLogin(e) {
             e.preventDefault();
-            const username = document.getElementById('login-username').value.trim().toLowerCase();
-            const password = document.getElementById('login-password').value.trim();
+            const loginButton = document.querySelector('#login-screen button[type="submit"]');
+            const enteredUsername = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            const email = usernameToEmail(enteredUsername);
 
-            if (username === credentials.server.user && password === credentials.server.pass) {
-                currentRole = 'server';
-            } else if (username === credentials.admin.user && password === credentials.admin.pass) {
-                currentRole = 'admin';
-            } else if (username === credentials.viewer.user && password === credentials.viewer.pass) {
-                currentRole = 'viewer';
-            } else {
-                showToast('Username atau Password salah! Apabila ingin akses hubungi Zainudin IT BMC', 'error');
+            if (!email || !password) {
+                showToast('Username tidak dikenal. Gunakan zainudin, robi, staf, atau email Firebase.', 'error');
                 return;
             }
 
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('main-app-container').classList.remove('hidden');
+            if (loginButton) {
+                loginButton.disabled = true;
+                loginButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menghubungkan Firebase...';
+            }
 
-            applyRolePermissions();
-            updateDashboard();
-            renderRadioTable();
-            renderInventoryTable();
-            renderRepairTable();
+            try {
+                const credential = await firebaseAuth.signInWithEmailAndPassword(email, password);
+                firebaseUser = credential.user;
+                const isOwner = (firebaseUser.email || '').toLowerCase() === 'zainudinxitkj@gmail.com';
+                let profile = null;
 
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('radio-commission-date').value = today;
-            document.getElementById('inventory-date').value = today;
-            document.getElementById('repair-report-date').value = today;
-            calculateExpdDate();
+                if (isOwner) {
+                    currentRole = 'server';
+                    currentUsername = 'Zainudin IT BMC';
+                } else {
+                    const profileSnap = await firestoreDb.collection('users').doc(firebaseUser.uid).get();
+                    if (!profileSnap.exists) {
+                        throw new Error('Profil akun tidak ditemukan di Firestore. Hubungi pemilik aplikasi.');
+                    }
+                    profile = profileSnap.data() || {};
+                    currentRole = String(profile.role || '').toLowerCase();
+                    currentUsername = profile.username || enteredUsername;
+                    if (!['server', 'admin', 'viewer'].includes(currentRole)) {
+                        throw new Error('Peran akun tidak valid. Hubungi pemilik aplikasi.');
+                    }
+                }
 
-            showToast(`Berhasil masuk sebagai ${currentRole.toUpperCase()}`, 'success');
+                await loadCloudData();
+
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('main-app-container').classList.remove('hidden');
+
+                applyRolePermissions();
+                updateDashboard();
+                renderRadioTable();
+                renderInventoryTable();
+                renderRepairTable();
+
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('radio-commission-date').value = today;
+                document.getElementById('inventory-date').value = today;
+                document.getElementById('repair-report-date').value = today;
+                calculateExpdDate();
+
+                showToast('Berhasil masuk Firebase sebagai ' + currentUsername + ' (' + currentRole.toUpperCase() + '). Data diambil dari cloud.', 'success');
+            } catch (error) {
+                console.error('Firebase login error:', error);
+                try { await firebaseAuth.signOut(); } catch (_) {}
+                firebaseUser = null;
+                currentRole = null;
+                currentUsername = '';
+                cloudReady = false;
+                let message = error.message || error.code || 'Gagal masuk Firebase.';
+                if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+                    message = 'Email/username atau password Firebase salah. Password harus password akun Firebase, bukan password login lokal lama.';
+                } else if (error.code === 'permission-denied' || error.code === 'firestore/permission-denied') {
+                    message = 'Akses Firestore ditolak. Periksa Rules dan profil akun.';
+                }
+                showToast(message, 'error');
+            } finally {
+                if (loginButton) {
+                    loginButton.disabled = false;
+                    loginButton.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Masuk ke Sistem';
+                }
+            }
         }
 
-        function handleLogout() {
+        async function handleLogout() {
+            cloudReady = false;
+            firebaseUser = null;
             currentRole = null;
+            currentUsername = '';
+            try { await firebaseAuth.signOut(); } catch (error) {
+                console.error('Firebase sign out error:', error);
+            }
             document.getElementById('main-app-container').classList.add('hidden');
             document.getElementById('login-screen').classList.remove('hidden');
             document.getElementById('login-username').value = '';
             document.getElementById('login-password').value = '';
-            showToast('Anda telah keluar.', 'info');
+            showToast('Anda telah keluar dari Firebase.', 'info');
         }
 
         function applyRolePermissions() {
@@ -1002,56 +1139,11 @@
         }
 
         function saveNewCredentials() {
-            if (currentRole !== 'server') {
-                showToast('Hanya akun SERVER yang dapat mengubah kredensial!', 'error');
-                return;
-            }
-
-            const sUser = document.getElementById('input-new-server-user').value.trim().toLowerCase();
-            const sPass = document.getElementById('input-new-server-pass').value.trim();
-            const aUser = document.getElementById('input-new-admin-user').value.trim().toLowerCase();
-            const aPass = document.getElementById('input-new-admin-pass').value.trim();
-            const vUser = document.getElementById('input-new-viewer-user').value.trim().toLowerCase();
-            const vPass = document.getElementById('input-new-viewer-pass').value.trim();
-
-            if (sUser) credentials.server.user = sUser;
-            if (sPass) credentials.server.pass = sPass;
-
-            if (aUser) credentials.admin.user = aUser;
-            if (aPass) credentials.admin.pass = aPass;
-
-            if (vUser) credentials.viewer.user = vUser;
-            if (vPass) credentials.viewer.pass = vPass;
-
-            localStorage.setItem(STORAGE_KEY_CREDS, JSON.stringify(credentials));
-            closeModal('modal-settings');
-            showToast('Username & Sandi berhasil diperbarui!', 'success');
+            showToast('Pengelolaan password sekarang melalui Firebase Authentication. Fitur kredensial lokal dinonaktifkan.', 'info');
         }
 
         function executeSecureReset() {
-            if (currentRole !== 'server') {
-                showToast('Akses Ditolak! Opsi Reset hanya untuk akun SERVER (Zainudin IT BMC).', 'error');
-                return;
-            }
-
-            const enteredPass = document.getElementById('input-reset-confirmation-pass').value.trim();
-            if (enteredPass !== credentials.server.pass) {
-                showToast('Sandi Server salah! Reset dibatalkan.', 'error');
-                return;
-            }
-
-            if (confirm('PERINGATAN: Seluruh data akan dikembalikan ke kondisi mode awal. Lanjutkan?')) {
-                radios = [...initialRadios];
-                inventory = [...initialInventory];
-                repairs = [...initialRepairs];
-                saveToLocalStorage();
-                updateDashboard();
-                renderRadioTable();
-                renderInventoryTable();
-                renderRepairTable();
-                closeModal('modal-settings');
-                showToast('Sistem berhasil di-reset ke mode awal.', 'info');
-            }
+            showToast('Reset lokal dinonaktifkan agar data utama Firebase tidak terhapus atau tertimpa.', 'error');
         }
 
         // ==================== STORAGE & DATA HANDLING ====================
@@ -1068,9 +1160,11 @@
         }
 
         function saveToLocalStorage() {
+            // Cache lokal hanya salinan; Firebase tetap menjadi sumber data utama.
             localStorage.setItem(STORAGE_KEY_RADIOS, JSON.stringify(radios));
             localStorage.setItem(STORAGE_KEY_INVENTORY, JSON.stringify(inventory));
             localStorage.setItem(STORAGE_KEY_REPAIRS, JSON.stringify(repairs));
+            if (cloudReady && firebaseUser) syncCloudData();
         }
 
         function switchTab(tabName) {
