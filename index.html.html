@@ -906,6 +906,17 @@
             localStorage.setItem(STORAGE_KEY_INVENTORY, JSON.stringify(inventory));
             localStorage.setItem(STORAGE_KEY_REPAIRS, JSON.stringify(repairs));
             cloudReady = true;
+
+            const diagnostic = snapshots.map((snap, index) =>
+                paths[index] + "=" + (snap.exists ? "ada/" + values[index].length + " data" : "dokumen tidak ditemukan")
+            ).join(" | ");
+            console.info("RadioTrack Firebase read diagnostic:", {
+                projectId: firebaseConfig.projectId,
+                database: "(default)",
+                uid: firebaseUser ? firebaseUser.uid : null,
+                diagnostic
+            });
+            showToast("Pembacaan cloud: " + diagnostic, "info");
         }
 
         function syncCloudData() {
