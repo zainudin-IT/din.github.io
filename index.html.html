@@ -886,19 +886,42 @@
             return accountMap[normalized] || (normalized.includes("@") ? normalized : null);
         }
 
+        // Lokasi dokumen cloud yang berhasil ditemukan saat proses baca.
+        let cloudDataRefs = {};
+
         async function loadCloudData() {
             cloudReady = false;
             const paths = ["radios", "inventory", "repairs"];
-            const snapshots = await Promise.all(
-                paths.map(name => firestoreDb.collection(name).doc("items").get())
-            );
-            const values = snapshots.map(snap => {
-                if (!snap.exists) return [];
-                const data = snap.data() || {};
+
+            // Data utama RadioTrack berada di appData/{nama}. Tetap dukung
+            // format lama {nama}/items bila dokumen utama belum tersedia.
+            const snapshots = await Promise.all(paths.map(async name => {
+                const primaryRef = firestoreDb.collection("appData").doc(name);
+                const legacyRef = firestoreDb.collection(name).doc("items");
+                const primarySnap = await primaryRef.get();
+
+                if (primarySnap.exists) {
+                    return { name, ref: primaryRef, snap: primarySnap, location: "appData/" + name };
+                }
+
+                const legacySnap = await legacyRef.get();
+                if (legacySnap.exists) {
+                    return { name, ref: legacyRef, snap: legacySnap, location: name + "/items" };
+                }
+
+                // Jika belum ada dokumen untuk kategori ini, gunakan lokasi
+                // utama saat ada penambahan data baru. Tidak ada penulisan saat login.
+                return { name, ref: primaryRef, snap: primarySnap, location: "appData/" + name };
+            }));
+
+            const values = snapshots.map(entry => {
+                if (!entry.snap.exists) return [];
+                const data = entry.snap.data() || {};
                 return Array.isArray(data.items) ? data.items : [];
             });
 
             // Cloud is the source of truth. Never merge old local data into these arrays.
+            cloudDataRefs = Object.fromEntries(snapshots.map(entry => [entry.name, entry.ref]));
             radios = values[0];
             inventory = values[1];
             repairs = values[2];
@@ -907,8 +930,8 @@
             localStorage.setItem(STORAGE_KEY_REPAIRS, JSON.stringify(repairs));
             cloudReady = true;
 
-            const diagnostic = snapshots.map((snap, index) =>
-                paths[index] + "=" + (snap.exists ? "ada/" + values[index].length + " data" : "dokumen tidak ditemukan")
+            const diagnostic = snapshots.map((entry, index) =>
+                entry.location + "=" + (entry.snap.exists ? "ada/" + values[index].length + " data" : "dokumen belum ada")
             ).join(" | ");
             console.info("RadioTrack Firebase read diagnostic:", {
                 projectId: firebaseConfig.projectId,
@@ -928,13 +951,17 @@
                 repairs: repairs
             };
             cloudSaveQueue = cloudSaveQueue.catch(() => {}).then(async () => {
-                await Promise.all(Object.entries(payloads).map(([name, items]) =>
-                    firestoreDb.collection(name).doc("items").set({
+                await Promise.all(Object.entries(payloads).map(([name, items]) => {
+                    const targetRef = cloudDataRefs[name];
+                    if (!targetRef) {
+                        throw new Error("Lokasi dokumen cloud untuk " + name + " belum ditentukan. Data tidak dikirim.");
+                    }
+                    return targetRef.set({
                         items: items,
                         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
                         updatedBy: uid
-                    }, { merge: true })
-                ));
+                    }, { merge: true });
+                }));
                 showToast("Perubahan berhasil disimpan ke Firebase Cloud.", "success");
             }).catch(error => {
                 console.error("Firebase cloud save error:", error);
