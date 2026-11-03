@@ -26,8 +26,8 @@ module.exports = async function handler(req, res) {
       const item = body[role] || {};
       const username = String(item.username || '').trim();
       const password = String(item.password || '');
-      if (!/^[a-zA-Z0-9._-]{3,40}$/.test(username)) {
-        return res.status(400).json({ error: 'Username ' + role + ' harus 3-40 karakter (huruf, angka, titik, garis bawah, atau strip).' });
+      if (!/^[a-zA-Z0-9._-]{3,40}$/.test(username) || ['server','zainudin','robi','staf'].includes(username.toLowerCase()) || username.includes('@')) {
+        return res.status(400).json({ error: 'Username ' + role + ' harus 3-40 karakter dan tidak boleh memakai username Server/akun lama atau alamat email.' });
       }
       const old = existing[role] || {};
       if (!old.passwordHash && password.length < 8) {
