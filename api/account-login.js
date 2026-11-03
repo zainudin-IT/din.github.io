@@ -11,7 +11,8 @@ module.exports = async function handler(req, res) {
     if (!username || !password || username.length > 40 || password.length > 200) {
       return res.status(400).json({ error: 'Username atau password tidak valid.' });
     }
-    const ref = a.firestore().collection('appData').doc('authAccounts');
+    // Keep password hashes outside appData, which may be readable by app users.
+    const ref = a.firestore().collection('privateAuth').doc('accounts');
     const snap = await ref.get();
     if (!snap.exists) return res.status(401).json({ error: 'Akun username belum disiapkan oleh Server melalui menu Pengaturan.' });
     const accounts = snap.data() || {};
