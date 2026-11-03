@@ -4,7 +4,8 @@ const bcrypt = require('bcryptjs');
 module.exports = async function handler(req, res) {
   try {
     const { admin, decoded } = await requireOwner(req);
-    const ref = admin.firestore().collection('appData').doc('authAccounts');
+    // Store password hashes in a dedicated server-only collection, not appData.
+    const ref = admin.firestore().collection('privateAuth').doc('accounts');
     if (req.method === 'GET') {
       const snap = await ref.get();
       const data = snap.exists ? snap.data() : {};
