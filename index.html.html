@@ -1056,7 +1056,7 @@
                     credential = await firebaseAuth.signInWithEmailAndPassword(email, password);
                 } else {
                     // Admin/Viewer baru memakai username tanpa email pribadi.
-                    const response = await fetch('/api/account-login', {
+                    const response = await fetch((window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform() ? 'https://dingithubio.vercel.app' : '') + '/api/account-login', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ username: enteredUsername, password })
@@ -1218,7 +1218,7 @@
             if (currentRole !== 'server' || !firebaseUser) return;
             try {
                 const token = await firebaseUser.getIdToken();
-                const response = await fetch('/api/account-manage', {
+                const response = await fetch((window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform() ? 'https://dingithubio.vercel.app' : '') + '/api/account-manage', {
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
                 const result = await response.json().catch(() => ({}));
