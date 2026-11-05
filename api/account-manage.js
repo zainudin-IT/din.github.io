@@ -1,7 +1,9 @@
 const { requireOwner } = require('../lib/firebase-admin');
 const bcrypt = require('bcryptjs');
+const applyCors = require('../lib/cors');
 
 module.exports = async function handler(req, res) {
+  if (applyCors(req, res)) return;
   try {
     const { admin, decoded } = await requireOwner(req);
     // Store password hashes in a dedicated server-only collection, not appData.
