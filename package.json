@@ -6,9 +6,10 @@
     "node": ">=20"
   },
   "scripts": {
-    "cap:sync": "cap sync",
+    "cap:sync": "npm run native:prepare && cap sync",
     "cap:android": "cap open android",
-    "cap:ios": "cap open ios"
+    "cap:ios": "cap open ios",
+    "native:prepare": "node scripts/prepare-native.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
