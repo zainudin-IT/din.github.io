@@ -1,7 +1,9 @@
 const { getAdmin } = require('../lib/firebase-admin');
 const bcrypt = require('bcryptjs');
+const applyCors = require('../lib/cors');
 
 module.exports = async function handler(req, res) {
+  if (applyCors(req, res)) return;
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method tidak diizinkan.' });
   try {
     const a = getAdmin();
