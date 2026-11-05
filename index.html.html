@@ -3,6 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="RadioTrack Pro">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/radiotrack-192.png">
+    <link rel="apple-touch-icon" href="/icons/radiotrack-192.png">
     <title>RadioTrack Pro - Zainudin IT BMC</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -1994,5 +2001,16 @@
         console.info("RadioTrack Pro: Firebase siap.");
     </script>
 
+
+    <script>
+        // PWA: register a network-only service worker so Firebase data and authentication
+        // always come from the live app; no user data or API responses are cached.
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => {
+                navigator.serviceWorker.register("/service-worker.js", { scope: "/" })
+                    .catch(error => console.warn("RadioTrack PWA registration failed:", error));
+            });
+        }
+    </script>
 </body>
 </html>
