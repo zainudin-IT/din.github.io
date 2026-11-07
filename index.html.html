@@ -1472,7 +1472,7 @@
         let tableSortOrder = localStorage.getItem(TABLE_SORT_STORAGE_KEY) || 'newest-first';
 
         function recordCreatedTimestamp(record, dateField) {
-            const idMatch = String(record && record.id || '').match(/(\\d{10,})$/);
+            const idMatch = String(record && record.id || '').match(/(\d{10,})$/);
             if (idMatch) {
                 const idTime = Number(idMatch[1]);
                 if (Number.isFinite(idTime)) return idTime;
