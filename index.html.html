@@ -2023,7 +2023,8 @@
             const rows = combined.filter(x => (kindFilter === 'ALL' || x.cameraKind === kindFilter) && Object.values(x).join(' ').toLowerCase().includes(query)).sort((a,b) => (b.date || '').localeCompare(a.date || ''));
             const head = document.getElementById('camera-table-head');
             const body = document.getElementById('camera-table-body');
-            const reverseOnly = kindFilter === 'reverse';
+            // Gunakan layout ringkas jika filter Kamera Mundur aktif, atau seluruh hasil pencarian hanya berisi Kamera Mundur.
+            const reverseOnly = kindFilter === 'reverse' || (rows.length > 0 && rows.every(x => x.cameraKind === 'reverse'));
             // Kamera Mundur tidak menggunakan kolom khusus Dashcam; sembunyikan agar tabel lebih ringkas.
             if (head) {
                 head.innerHTML = reverseOnly
