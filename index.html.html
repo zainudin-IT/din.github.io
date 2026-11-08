@@ -2030,7 +2030,7 @@
             // Gunakan layout ringkas jika filter Kamera Mundur aktif, atau seluruh hasil pencarian hanya berisi Kamera Mundur.
             const reverseOnly = kindFilter === 'reverse' || (rows.length > 0 && rows.every(x => x.cameraKind === 'reverse'));
             const reverseDetails = x => {
-                const legacy = String(x.notes || '').split(/\\s*\\|\\s*/);
+                const legacy = String(x.notes || '').split(/\s*\|\s*/);
                 return {
                     user: x.user || legacy[0] || '',
                     recipient: x.recipient || legacy[1] || '',
@@ -2040,13 +2040,13 @@
             // Kamera Mundur tidak menggunakan kolom khusus Dashcam; sembunyikan agar tabel lebih ringkas.
             if (head) {
                 head.innerHTML = reverseOnly
-                    ? '<tr><th class="p-3">No</th><th class="p-3">No. Unit / Lambung</th><th class="p-3">Tanggal Pasang</th><th class="p-3">Serial Number</th><th class="p-3">User</th><th class="p-3">Nama Penerima</th><th class="p-3 no-print">Aksi</th><th class="p-3">Ket</th></tr>'
+                    ? '<tr><th class="p-3">No</th><th class="p-3">No. Unit / Lambung</th><th class="p-3">Tanggal Pasang</th><th class="p-3">Serial Number</th><th class="p-3">User</th><th class="p-3">Nama Penerima</th><th class="p-3">Ket</th><th class="p-3 no-print">Aksi</th></tr>'
                     : '<tr><th class="p-3">No</th><th class="p-3">No. Unit / Lambung</th><th class="p-3">Jenis Kamera</th><th class="p-3">Tanggal Pasang</th><th class="p-3">Merek / Tipe</th><th class="p-3">Serial Number / IMEI</th><th class="p-3">Nomor SIM</th><th class="p-3">Kondisi Kamera</th><th class="p-3">Kondisi Memori</th><th class="p-3">GPS & 4G</th><th class="p-3">Rekam Otomatis</th><th class="p-3">PIC / Keterangan</th><th class="p-3 no-print">Aksi</th></tr>';
             }
             body.innerHTML = rows.length ? rows.map((x,i) => {
                 if (reverseOnly) {
                     const details = reverseDetails(x);
-                    return '<tr class="hover:bg-slate-50"><td class="p-3">'+(i+1)+'</td><td class="p-3 font-bold">'+cameraEscape(x.unit)+'</td><td class="p-3">'+formatDate(x.date)+'</td><td class="p-3 font-mono">'+cameraEscape(x.sn)+'</td><td class="p-3">'+cameraEscape(details.user)+'</td><td class="p-3">'+cameraEscape(details.recipient)+'</td>'+cameraAction(x.cameraKind,x.id)+'<td class="p-3">'+cameraEscape(details.ket)+'</td></tr>';
+                    return '<tr class="hover:bg-slate-50"><td class="p-3">'+(i+1)+'</td><td class="p-3 font-bold">'+cameraEscape(x.unit)+'</td><td class="p-3">'+formatDate(x.date)+'</td><td class="p-3 font-mono">'+cameraEscape(x.sn)+'</td><td class="p-3">'+cameraEscape(details.user)+'</td><td class="p-3">'+cameraEscape(details.recipient)+'</td><td class="p-3">'+cameraEscape(details.ket)+'</td>'+cameraAction(x.cameraKind,x.id)+'</tr>';
                 }
                 const common = '<td class="p-3">'+(i+1)+'</td><td class="p-3 font-bold">'+cameraEscape(x.unit)+'</td><td class="p-3">'+x.cameraKindLabel+'</td><td class="p-3">'+formatDate(x.date)+'</td>';
                 return '<tr class="hover:bg-slate-50">'+common+'<td class="p-3">'+cameraEscape(x.model)+'</td><td class="p-3 font-mono">'+cameraEscape(x.sn)+'</td><td class="p-3">'+(x.cameraKind==='dashcam'?cameraEscape(x.sim):'—')+'</td><td class="p-3">'+(x.cameraKind==='dashcam'?cameraEscape(x.condition):'—')+'</td><td class="p-3">'+(x.cameraKind==='dashcam'?cameraEscape(x.memory):'—')+'</td><td class="p-3">'+(x.cameraKind==='dashcam'?cameraEscape(x.network):'—')+'</td><td class="p-3">'+(x.cameraKind==='dashcam'?cameraEscape(x.autoRecord):'—')+'</td><td class="p-3">'+cameraEscape(x.notes)+'</td>'+cameraAction(x.cameraKind,x.id)+'</tr>';
