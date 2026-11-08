@@ -546,7 +546,8 @@
                     <div class="flex flex-wrap gap-2 w-full md:w-auto">
                         <input id="search-camera" oninput="renderCameraTable()" placeholder="Cari unit, jenis, tipe, SN/IMEI, SIM, PIC..." class="flex-1 min-w-[220px] border border-slate-300 rounded-lg px-3 py-2 text-xs">
                         <select id="filter-camera-kind" onchange="renderCameraTable()" class="border border-slate-300 rounded-lg px-3 py-2 text-xs"><option value="ALL">Semua Jenis Kamera</option><option value="dashcam">Dashcam</option><option value="reverse">Kamera Mundur</option></select>
-                        <button id="btn-add-camera" onclick="openCameraModal('dashcam')" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-lg text-xs"><i class="fa-solid fa-plus"></i> Tambah Kamera</button>
+                        <select id="new-camera-kind" class="border border-slate-300 rounded-lg px-3 py-2 text-xs"><option value="dashcam">Dashcam</option><option value="reverse">Kamera Mundur</option></select>
+                        <button id="btn-add-camera" onclick="openCameraModal(document.getElementById('new-camera-kind').value)" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-lg text-xs"><i class="fa-solid fa-plus"></i> Tambah Kamera</button>
                         <button onclick="exportTableToCSV('camera-table','Rekap_Seluruh_Kamera.csv')" class="bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-lg text-xs font-bold"><i class="fa-solid fa-file-excel text-emerald-600"></i> Export CSV</button>
                     </div>
                 </div>
