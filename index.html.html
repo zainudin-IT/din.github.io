@@ -238,6 +238,8 @@
                         <i class="fa-solid fa-wrench"></i>
                         <span>Rekap Perbaikan & Service</span>
                     </button>
+                    <button onclick="switchTab('dashcam')" id="tab-btn-dashcam" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 whitespace-nowrap py-3 px-3 border-b-2 font-bold text-sm flex items-center space-x-2"><i class="fa-solid fa-video"></i><span>Rekap Kamera Dashcam</span></button>
+                    <button onclick="switchTab('reverse-camera')" id="tab-btn-reverse-camera" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 whitespace-nowrap py-3 px-3 border-b-2 font-bold text-sm flex items-center space-x-2"><i class="fa-solid fa-camera"></i><span>Rekap Kamera Mundur</span></button>
                 </nav>
             </div>
 
@@ -530,11 +532,41 @@
                         <span>Menampilkan 0 log perbaikan</span>
                     </div>
                 </div>
+
+            </div>
+            <div id="tab-dashcam" class="tab-content hidden space-y-4">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-3 justify-between items-center no-print">
+                    <div class="font-bold text-slate-800">Data pemasangan kamera Dashcam kendaraan</div>
+                    <div class="flex gap-2 w-full sm:w-auto"><input id="search-dashcam" oninput="renderDashcamTable()" placeholder="Cari unit, SN/IMEI, SIM, PIC..." class="flex-1 border rounded-lg px-3 py-2 text-xs"><button id="btn-add-dashcam" onclick="openCameraModal('dashcam')" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-lg text-xs"><i class="fa-solid fa-plus"></i> Tambah Dashcam</button><button onclick="exportTableToCSV('dashcam-table','Rekap_Dashcam.csv')" class="bg-slate-100 px-3 py-2 rounded-lg text-xs font-bold">Export CSV</button></div>
+                </div>
+                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden"><div class="overflow-auto max-h-[65vh]"><table id="dashcam-table" class="w-full text-xs whitespace-nowrap"><thead class="sticky top-0 z-10 bg-slate-900 text-white"><tr><th class="p-3">No</th><th class="p-3">No. Unit / Lambung</th><th class="p-3">Tanggal Pasang</th><th class="p-3">Merek / Tipe</th><th class="p-3">Serial Number / IMEI</th><th class="p-3">Nomor SIM</th><th class="p-3">Kondisi Kamera</th><th class="p-3">Kondisi Memori</th><th class="p-3">GPS & 4G</th><th class="p-3">Rekam Otomatis Kontak ON/OFF</th><th class="p-3">PIC / Keterangan</th><th class="p-3 no-print">Aksi</th></tr></thead><tbody id="dashcam-table-body" class="divide-y divide-slate-200"></tbody></table></div><div id="dashcam-count" class="p-3 bg-slate-50 text-xs text-slate-500">0 data</div></div>
+            </div>
+            <div id="tab-reverse-camera" class="tab-content hidden space-y-4">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-3 justify-between items-center no-print">
+                    <div class="font-bold text-slate-800">Data pemasangan kamera mundur kendaraan</div>
+                    <div class="flex gap-2 w-full sm:w-auto"><input id="search-reverse-camera" oninput="renderReverseCameraTable()" placeholder="Cari unit, tipe, SN/IMEI, PIC..." class="flex-1 border rounded-lg px-3 py-2 text-xs"><button id="btn-add-reverse-camera" onclick="openCameraModal('reverse')" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-lg text-xs"><i class="fa-solid fa-plus"></i> Tambah Kamera Mundur</button><button onclick="exportTableToCSV('reverse-camera-table','Rekap_Kamera_Mundur.csv')" class="bg-slate-100 px-3 py-2 rounded-lg text-xs font-bold">Export CSV</button></div>
+                </div>
+                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden"><div class="overflow-auto max-h-[65vh]"><table id="reverse-camera-table" class="w-full text-xs whitespace-nowrap"><thead class="sticky top-0 z-10 bg-slate-900 text-white"><tr><th class="p-3">No</th><th class="p-3">No. Unit / Lambung</th><th class="p-3">Tanggal Pasang</th><th class="p-3">Merek / Tipe Kamera</th><th class="p-3">Serial Number / IMEI</th><th class="p-3">PIC / Keterangan</th><th class="p-3 no-print">Aksi</th></tr></thead><tbody id="reverse-camera-table-body" class="divide-y divide-slate-200"></tbody></table></div><div id="reverse-camera-count" class="p-3 bg-slate-50 text-xs text-slate-500">0 data</div></div>
+            </div>
             </div>
 
         </div>
     </div>
 
+
+    <div id="modal-camera-record" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-3"><div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-auto"><div class="bg-slate-900 text-white p-4 flex justify-between"><h3 id="camera-modal-title" class="font-bold">Tambah Data Kamera</h3><button type="button" onclick="closeModal('modal-camera-record')">✕</button></div><form id="form-camera-record" onsubmit="saveCameraRecord(event)" class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-3"><input type="hidden" id="camera-kind"><input type="hidden" id="camera-record-id">
+    <label class="text-xs font-semibold">No. unit / nomor lambung<input id="camera-unit" required class="mt-1 w-full border rounded-lg p-2"></label>
+    <label class="text-xs font-semibold">Tanggal pemasangan<input id="camera-date" type="date" required class="mt-1 w-full border rounded-lg p-2"></label>
+    <label class="text-xs font-semibold">Merek dan tipe kamera<input id="camera-model" placeholder="Dashcam: belum dipastikan; kamera mundur: 7CCA04BK atau lainnya" class="mt-1 w-full border rounded-lg p-2"></label>
+    <label class="text-xs font-semibold">Serial Number / IMEI<input id="camera-sn" class="mt-1 w-full border rounded-lg p-2"></label>
+    <div id="dashcam-extra-fields" class="contents">
+    <label class="text-xs font-semibold">Nomor kartu SIM<input id="camera-sim" class="mt-1 w-full border rounded-lg p-2"></label>
+    <label class="text-xs font-semibold">Kondisi kamera<select id="camera-condition" class="mt-1 w-full border rounded-lg p-2"><option>Baik</option><option>Perlu pemeriksaan</option><option>Rusak</option></select></label>
+    <label class="text-xs font-semibold">Kondisi kartu memori<select id="camera-memory" class="mt-1 w-full border rounded-lg p-2"><option>Baik</option><option>Belum diperiksa</option><option>Rusak</option><option>Tidak tersedia</option></select></label>
+    <label class="text-xs font-semibold">Status GPS dan 4G<select id="camera-network" class="mt-1 w-full border rounded-lg p-2"><option>GPS & 4G aktif</option><option>GPS aktif, 4G tidak aktif</option><option>GPS tidak aktif, 4G aktif</option><option>Keduanya tidak aktif</option><option>Belum diperiksa</option></select></label>
+    <label class="text-xs font-semibold">Rekaman otomatis saat kontak ON/OFF<select id="camera-auto-record" class="mt-1 w-full border rounded-lg p-2"><option>Berfungsi</option><option>Tidak berfungsi</option><option>Belum diperiksa</option></select></label></div>
+    <label class="text-xs font-semibold sm:col-span-2">PIC pemasangan dan keterangan<textarea id="camera-notes" rows="2" class="mt-1 w-full border rounded-lg p-2"></textarea></label>
+    <div class="sm:col-span-2 flex justify-end gap-2"><button type="button" onclick="closeModal('modal-camera-record')" class="px-4 py-2 rounded-lg bg-slate-100 text-xs font-bold">Batal</button><button type="submit" class="px-4 py-2 rounded-lg bg-amber-500 text-slate-950 text-xs font-bold">Simpan Data</button></div></form></div></div>
     <!-- ==================== MODAL: PENGATURAN KEAMANAN AKUN ==================== -->
     <div id="modal-settings" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full flex flex-col max-h-[85vh] overflow-hidden border border-slate-200 my-auto">
@@ -934,7 +966,7 @@
 
         async function loadCloudData() {
             cloudReady = false;
-            const paths = ["radios", "inventory", "repairs"];
+            const paths = ["radios", "inventory", "repairs", "dashcams", "reverseCameras"];
 
             // Data utama RadioTrack berada di appData/{nama}. Tetap dukung
             // format lama {nama}/items bila dokumen utama belum tersedia.
@@ -968,9 +1000,15 @@
             radios = values[0];
             inventory = values[1];
             repairs = values[2];
+            dashcams = values[3];
+            reverseCameras = values[4];
+            localStorage.setItem(STORAGE_KEY_DASHCAMS, JSON.stringify(dashcams));
+            localStorage.setItem(STORAGE_KEY_REVERSE_CAMERAS, JSON.stringify(reverseCameras));
             localStorage.setItem(STORAGE_KEY_RADIOS, JSON.stringify(radios));
             localStorage.setItem(STORAGE_KEY_INVENTORY, JSON.stringify(inventory));
             localStorage.setItem(STORAGE_KEY_REPAIRS, JSON.stringify(repairs));
+            localStorage.setItem(STORAGE_KEY_DASHCAMS, JSON.stringify(dashcams));
+            localStorage.setItem(STORAGE_KEY_REVERSE_CAMERAS, JSON.stringify(reverseCameras));
             cloudReady = true;
 
             const diagnostic = snapshots.map((entry, index) =>
@@ -991,7 +1029,9 @@
             const payloads = {
                 radios: radios,
                 inventory: inventory,
-                repairs: repairs
+                repairs: repairs,
+                dashcams: dashcams,
+                reverseCameras: reverseCameras
             };
             cloudSaveQueue = cloudSaveQueue.catch(() => {}).then(async () => {
                 await Promise.all(Object.entries(payloads).map(([name, items]) => {
@@ -1016,6 +1056,8 @@
         const STORAGE_KEY_RADIOS = 'bmc_radios_v5';
         const STORAGE_KEY_INVENTORY = 'bmc_inventory_v5';
         const STORAGE_KEY_REPAIRS = 'bmc_repairs_v5';
+        const STORAGE_KEY_DASHCAMS = 'bmc_dashcams_v1';
+        const STORAGE_KEY_REVERSE_CAMERAS = 'bmc_reverse_cameras_v1';
         const STORAGE_KEY_CREDS = 'bmc_custom_creds_v5';
 
         // Credentials
@@ -1030,6 +1072,8 @@
         let radios = [];
         let inventory = [];
         let repairs = [];
+        let dashcams = [];
+        let reverseCameras = [];
 
         let statusChartInstance = null;
         let expdChartInstance = null;
@@ -1142,6 +1186,8 @@
                 renderRadioTable();
                 renderInventoryTable();
                 renderRepairTable();
+                renderDashcamTable();
+                renderReverseCameraTable();
                 syncTableSortControls();
 
                 const today = new Date().toISOString().split('T')[0];
@@ -1199,6 +1245,8 @@
                 document.getElementById('btn-add-radio').style.display = 'inline-flex';
                 document.getElementById('btn-add-inventory').style.display = 'inline-flex';
                 document.getElementById('btn-add-repair').style.display = 'inline-flex';
+                document.getElementById('btn-add-dashcam').style.display = 'inline-flex';
+                document.getElementById('btn-add-reverse-camera').style.display = 'inline-flex';
             } else if (currentRole === 'admin') {
                 badge.className = "bg-blue-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wide";
                 usernameDisplay.innerText = "Admin Editor";
@@ -1211,6 +1259,8 @@
                 document.getElementById('btn-add-radio').style.display = 'none';
                 document.getElementById('btn-add-inventory').style.display = 'none';
                 document.getElementById('btn-add-repair').style.display = 'none';
+                document.getElementById('btn-add-dashcam').style.display = 'none';
+                document.getElementById('btn-add-reverse-camera').style.display = 'none';
             }
         }
 
@@ -1320,10 +1370,14 @@
             const storedR = localStorage.getItem(STORAGE_KEY_RADIOS);
             const storedI = localStorage.getItem(STORAGE_KEY_INVENTORY);
             const storedRep = localStorage.getItem(STORAGE_KEY_REPAIRS);
+            const storedDash = localStorage.getItem(STORAGE_KEY_DASHCAMS);
+            const storedReverse = localStorage.getItem(STORAGE_KEY_REVERSE_CAMERAS);
 
             radios = storedR ? JSON.parse(storedR) : initialRadios;
             inventory = storedI ? JSON.parse(storedI) : initialInventory;
             repairs = storedRep ? JSON.parse(storedRep) : initialRepairs;
+            dashcams = storedDash ? JSON.parse(storedDash) : [];
+            reverseCameras = storedReverse ? JSON.parse(storedReverse) : [];
 
             if (!storedR) saveToLocalStorage();
         }
@@ -1933,6 +1987,52 @@
                 showToast('Log dihapus.', 'info');
             }
         }
+
+
+        // ==================== DASHCAM & REAR CAMERA ====================
+        function cameraEscape(value) { return escapeHtml(value == null || value === '' ? '-' : String(value)); }
+        function cameraAction(kind, id) {
+            if (currentRole === 'viewer') return '';
+            return '<td class="p-3 text-center no-print whitespace-nowrap"><button onclick="editCameraRecord(\''+kind+'\',\''+id+'\')" class="text-blue-600 px-2" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="deleteCameraRecord(\''+kind+'\',\''+id+'\')" class="text-rose-600 px-2" title="Hapus"><i class="fa-solid fa-trash"></i></button></td>';
+        }
+        function renderDashcamTable() {
+            const q=(document.getElementById('search-dashcam')?.value||'').toLowerCase();
+            const rows=dashcams.filter(x=>Object.values(x).join(' ').toLowerCase().includes(q));
+            const body=document.getElementById('dashcam-table-body');
+            body.innerHTML=rows.length?rows.map((x,i)=>'<tr><td class="p-3">'+(i+1)+'</td><td class="p-3 font-bold">'+cameraEscape(x.unit)+'</td><td class="p-3">'+formatDate(x.date)+'</td><td class="p-3">'+cameraEscape(x.model)+'</td><td class="p-3 font-mono">'+cameraEscape(x.sn)+'</td><td class="p-3">'+cameraEscape(x.sim)+'</td><td class="p-3">'+cameraEscape(x.condition)+'</td><td class="p-3">'+cameraEscape(x.memory)+'</td><td class="p-3">'+cameraEscape(x.network)+'</td><td class="p-3">'+cameraEscape(x.autoRecord)+'</td><td class="p-3">'+cameraEscape(x.notes)+'</td>'+cameraAction('dashcam',x.id)+'</tr>').join(''):'<tr><td colspan="12" class="p-8 text-center text-slate-400">Belum ada data Dashcam.</td></tr>';
+            document.getElementById('dashcam-count').innerText='Menampilkan '+rows.length+' dari '+dashcams.length+' data Dashcam';
+        }
+        function renderReverseCameraTable() {
+            const q=(document.getElementById('search-reverse-camera')?.value||'').toLowerCase();
+            const rows=reverseCameras.filter(x=>Object.values(x).join(' ').toLowerCase().includes(q));
+            const body=document.getElementById('reverse-camera-table-body');
+            body.innerHTML=rows.length?rows.map((x,i)=>'<tr><td class="p-3">'+(i+1)+'</td><td class="p-3 font-bold">'+cameraEscape(x.unit)+'</td><td class="p-3">'+formatDate(x.date)+'</td><td class="p-3">'+cameraEscape(x.model)+'</td><td class="p-3 font-mono">'+cameraEscape(x.sn)+'</td><td class="p-3">'+cameraEscape(x.notes)+'</td>'+cameraAction('reverse',x.id)+'</tr>').join(''):'<tr><td colspan="7" class="p-8 text-center text-slate-400">Belum ada data Kamera Mundur.</td></tr>';
+            document.getElementById('reverse-camera-count').innerText='Menampilkan '+rows.length+' dari '+reverseCameras.length+' data Kamera Mundur';
+        }
+        function openCameraModal(kind,id=null) {
+            if(currentRole==='viewer') return;
+            const reverse=kind==='reverse', list=reverse?reverseCameras:dashcams;
+            document.getElementById('form-camera-record').reset();
+            document.getElementById('camera-kind').value=kind;
+            document.getElementById('camera-record-id').value='';
+            document.getElementById('camera-date').value=new Date().toISOString().slice(0,10);
+            document.getElementById('dashcam-extra-fields').classList.toggle('hidden',reverse);
+            document.getElementById('camera-modal-title').innerText=reverse?'Data Kamera Mundur':'Data Kamera Dashcam';
+            if(id){const x=list.find(v=>v.id===id);if(x){document.getElementById('camera-record-id').value=x.id;document.getElementById('camera-unit').value=x.unit||'';document.getElementById('camera-date').value=x.date||'';document.getElementById('camera-model').value=x.model||'';document.getElementById('camera-sn').value=x.sn||'';document.getElementById('camera-sim').value=x.sim||'';document.getElementById('camera-condition').value=x.condition||'Baik';document.getElementById('camera-memory').value=x.memory||'Belum diperiksa';document.getElementById('camera-network').value=x.network||'Belum diperiksa';document.getElementById('camera-auto-record').value=x.autoRecord||'Belum diperiksa';document.getElementById('camera-notes').value=x.notes||'';}}
+            document.getElementById('modal-camera-record').classList.remove('hidden');
+        }
+        function saveCameraRecord(e) {
+            e.preventDefault();if(currentRole==='viewer')return;
+            const kind=document.getElementById('camera-kind').value, reverse=kind==='reverse';
+            const list=reverse?reverseCameras:dashcams, id=document.getElementById('camera-record-id').value;
+            const data={id:id||'CAM-'+Date.now(),unit:document.getElementById('camera-unit').value.trim(),date:document.getElementById('camera-date').value,model:document.getElementById('camera-model').value.trim(),sn:document.getElementById('camera-sn').value.trim(),notes:document.getElementById('camera-notes').value.trim()};
+            if(!reverse)Object.assign(data,{sim:document.getElementById('camera-sim').value.trim(),condition:document.getElementById('camera-condition').value,memory:document.getElementById('camera-memory').value,network:document.getElementById('camera-network').value,autoRecord:document.getElementById('camera-auto-record').value});
+            const index=list.findIndex(x=>x.id===id);if(index>=0)list[index]=data;else list.push(data);
+            saveToLocalStorage();renderDashcamTable();renderReverseCameraTable();closeModal('modal-camera-record');
+            showToast('Data '+(reverse?'kamera mundur':'Dashcam')+' berhasil disimpan.','success');
+        }
+        function editCameraRecord(kind,id){openCameraModal(kind,id);}
+        function deleteCameraRecord(kind,id){if(currentRole==='viewer')return;if(!confirm('Hapus data kamera ini?'))return;if(kind==='reverse')reverseCameras=reverseCameras.filter(x=>x.id!==id);else dashcams=dashcams.filter(x=>x.id!==id);saveToLocalStorage();renderDashcamTable();renderReverseCameraTable();showToast('Data kamera dihapus.','info');}
 
         // ==================== HELPER UTILITIES ====================
         function closeModal(modalId) { document.getElementById(modalId).classList.add('hidden'); }
