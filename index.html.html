@@ -3,11 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="RadioTrack Pro">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/radiotrack-192.png">
+    <link rel="apple-touch-icon" href="/icons/radiotrack-192.png">
     <title>RadioTrack Pro - Zainudin IT BMC</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS: membaca file Excel untuk import massal kamera -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Google Font Inter -->
@@ -25,6 +34,22 @@
         }
     </script>
     <style>
+        .table-scroll-area {
+            max-height: min(420px, 55vh);
+            overflow-y: auto;
+            overflow-x: auto;
+            overscroll-behavior: contain;
+        }
+        .table-scroll-area thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: #000000;
+            color: #ffffff;
+            background-clip: padding-box;
+            box-shadow: 0 1px 0 #333333;
+            opacity: 1;
+        }
         .table-responsive::-webkit-scrollbar,
         .custom-scroll::-webkit-scrollbar { 
             width: 6px;
@@ -50,6 +75,8 @@
         .board-size-large { zoom: 110%; }
         
         @media print {
+            .table-scroll-area { max-height: none !important; overflow: visible !important; }
+            .table-scroll-area thead th { position: static !important; }
             .no-print { display: none !important; }
             .print-only { display: block !important; }
             body { background: white !important; color: black !important; }
@@ -213,6 +240,7 @@
                         <i class="fa-solid fa-wrench"></i>
                         <span>Rekap Perbaikan & Service</span>
                     </button>
+                    <button onclick="switchTab('cameras')" id="tab-btn-cameras" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 whitespace-nowrap py-3 px-3 border-b-2 font-bold text-sm flex items-center space-x-2"><i class="fa-solid fa-video"></i><span>Rekap Kamera</span></button>
                 </nav>
             </div>
 
@@ -273,6 +301,13 @@
                         <div class="mt-2 text-2xl font-extrabold text-amber-600" id="stat-item-out">0</div>
                         <span class="text-[11px] text-slate-500 font-medium">Log Pengeluaran</span>
                     </div>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm"><div class="text-[11px] font-bold text-slate-500 uppercase">Total Kamera</div><div id="stat-total-camera" class="mt-2 text-2xl font-extrabold text-slate-800">0</div><span class="text-[11px] text-slate-500">Semua jenis kamera</span></div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm"><div class="text-[11px] font-bold text-slate-500 uppercase">Dashcam</div><div id="stat-dashcam" class="mt-2 text-2xl font-extrabold text-blue-600">0</div><span class="text-[11px] text-slate-500">Unit terdata</span></div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm"><div class="text-[11px] font-bold text-slate-500 uppercase">Kamera Mundur</div><div id="stat-reverse-camera" class="mt-2 text-2xl font-extrabold text-amber-600">0</div><span class="text-[11px] text-slate-500">Unit terdata</span></div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm"><div class="text-[11px] font-bold text-slate-500 uppercase">Perlu Pemeriksaan</div><div id="stat-camera-issues" class="mt-2 text-2xl font-extrabold text-rose-600">0</div><span class="text-[11px] text-slate-500">Dashcam bermasalah</span></div>
                 </div>
 
                 <!-- Model Specific Widgets Row 2 -->
@@ -354,7 +389,13 @@
                         </select>
                     </div>
 
-                    <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+                    <div class="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap">
+                        <label class="flex items-center gap-2 text-xs font-semibold text-slate-600 whitespace-nowrap">Urutan data
+                            <select class="table-sort-order bg-slate-50 border border-slate-300 rounded-lg py-2 px-2 focus:ring-2 focus:ring-amber-500 focus:outline-none" onchange="setTableSortOrder(this.value)" aria-label="Urutan data terbaru">
+                                <option value="newest-first">Terbaru di atas</option>
+                                <option value="newest-last">Terbaru di bawah</option>
+                            </select>
+                        </label>
                         <button onclick="exportTableToCSV('radio-table', 'Master_Radio_PTT_Zainudin_IT.csv')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs px-3 py-2 rounded-lg font-medium border border-slate-300 transition flex items-center gap-1.5" title="Unduh ke Excel / Office">
                             <i class="fa-solid fa-file-excel text-emerald-600"></i> Ekspor Excel/CSV
                         </button>
@@ -365,7 +406,7 @@
                 </div>
 
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden print-card">
-                    <div class="overflow-x-auto table-responsive">
+                    <div class="table-scroll-area overflow-x-auto table-responsive">
                         <table class="w-full text-xs text-left text-slate-700" id="radio-table">
                             <thead class="bg-slate-900 text-slate-200 uppercase text-[11px] font-semibold tracking-wider">
                                 <tr>
@@ -395,7 +436,7 @@
 
             <!-- ==================== TAB 3: PENGELUARAN & PENERIMAAN ==================== -->
             <div id="tab-inventory" class="tab-content hidden space-y-4">
-                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 justify-between items-center no-print">
+                <div class="inventory-sticky-toolbar sticky top-20 z-20 bg-white/95 backdrop-blur-sm p-4 rounded-xl border border-slate-200 shadow-md flex flex-col md:flex-row gap-3 justify-between items-center no-print">
                     <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
                         <div class="relative w-full sm:w-64">
                             <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
@@ -408,7 +449,13 @@
                         </select>
                     </div>
 
-                    <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+                    <div class="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap">
+                        <label class="flex items-center gap-2 text-xs font-semibold text-slate-600 whitespace-nowrap">Urutan data
+                            <select class="table-sort-order bg-slate-50 border border-slate-300 rounded-lg py-2 px-2 focus:ring-2 focus:ring-amber-500 focus:outline-none" onchange="setTableSortOrder(this.value)" aria-label="Urutan data terbaru">
+                                <option value="newest-first">Terbaru di atas</option>
+                                <option value="newest-last">Terbaru di bawah</option>
+                            </select>
+                        </label>
                         <button onclick="exportTableToCSV('inventory-table', 'Log_Transaksi_Barang_Radio.csv')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs px-3 py-2 rounded-lg font-medium border border-slate-300 transition flex items-center gap-1.5" title="Unduh ke Excel / Office">
                             <i class="fa-solid fa-file-excel text-emerald-600"></i> Ekspor Excel/CSV
                         </button>
@@ -419,7 +466,7 @@
                 </div>
 
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden print-card">
-                    <div class="overflow-x-auto table-responsive">
+                    <div class="table-scroll-area overflow-x-auto table-responsive">
                         <table class="w-full text-xs text-left text-slate-700" id="inventory-table">
                             <thead class="bg-slate-900 text-slate-200 uppercase text-[11px] font-semibold tracking-wider">
                                 <tr>
@@ -453,7 +500,13 @@
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+                    <div class="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap">
+                        <label class="flex items-center gap-2 text-xs font-semibold text-slate-600 whitespace-nowrap">Urutan data
+                            <select class="table-sort-order bg-slate-50 border border-slate-300 rounded-lg py-2 px-2 focus:ring-2 focus:ring-amber-500 focus:outline-none" onchange="setTableSortOrder(this.value)" aria-label="Urutan data terbaru">
+                                <option value="newest-first">Terbaru di atas</option>
+                                <option value="newest-last">Terbaru di bawah</option>
+                            </select>
+                        </label>
                         <button onclick="exportTableToCSV('repair-table', 'Rekap_Perbaikan_Radio_Motorola.csv')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs px-3 py-2 rounded-lg font-medium border border-slate-300 transition flex items-center gap-1.5" title="Unduh ke Excel / Office">
                             <i class="fa-solid fa-file-excel text-emerald-600"></i> Ekspor Excel/CSV
                         </button>
@@ -464,7 +517,7 @@
                 </div>
 
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden print-card">
-                    <div class="overflow-x-auto table-responsive">
+                    <div class="table-scroll-area overflow-x-auto table-responsive">
                         <table class="w-full text-xs text-left text-slate-700" id="repair-table">
                             <thead class="bg-slate-900 text-slate-200 uppercase text-[11px] font-semibold tracking-wider">
                                 <tr>
@@ -487,11 +540,57 @@
                         <span>Menampilkan 0 log perbaikan</span>
                     </div>
                 </div>
+
+            </div>
+            <div id="tab-cameras" class="tab-content hidden space-y-4">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 justify-between items-center no-print">
+                    <div class="font-bold text-slate-800">Rekap pemasangan seluruh kamera kendaraan</div>
+                    <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                        <input id="search-camera" oninput="renderCameraTable()" placeholder="Cari unit, jenis, tipe, SN/IMEI, SIM, PIC..." class="flex-1 min-w-[220px] border border-slate-300 rounded-lg px-3 py-2 text-xs">
+                        <select id="filter-camera-kind" onchange="renderCameraTable()" class="border border-slate-300 rounded-lg px-3 py-2 text-xs"><option value="ALL">Semua Jenis Kamera</option><option value="dashcam">Dashcam</option><option value="reverse">Kamera Mundur</option></select>
+                        <label class="flex items-center gap-2 text-xs font-semibold text-slate-600 whitespace-nowrap">Urutan data
+                            <select class="table-sort-order bg-slate-50 border border-slate-300 rounded-lg py-2 px-2 focus:ring-2 focus:ring-amber-500 focus:outline-none" onchange="setTableSortOrder(this.value)" aria-label="Urutan data kamera">
+                                <option value="newest-first">Terbaru di atas</option>
+                                <option value="newest-last">Terbaru di bawah</option>
+                            </select>
+                        </label>
+                        <input id="camera-bulk-file" type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="importCameraExcel(event)">
+                        <button type="button" onclick="document.getElementById('camera-bulk-file').click()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-3 py-2 rounded-lg text-xs"><i class="fa-solid fa-file-import"></i> Import Massal</button>
+                        <select id="new-camera-kind" class="border border-slate-300 rounded-lg px-3 py-2 text-xs"><option value="dashcam">Dashcam</option><option value="reverse">Kamera Mundur</option></select>
+                        <button id="btn-add-camera" onclick="openCameraModal(document.getElementById('new-camera-kind').value)" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-lg text-xs"><i class="fa-solid fa-plus"></i> Tambah Kamera</button>
+                        <button onclick="exportTableToCSV('camera-table','Rekap_Seluruh_Kamera.csv')" class="bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-lg text-xs font-bold"><i class="fa-solid fa-file-excel text-emerald-600"></i> Export CSV</button>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden print-card"><div class="table-scroll-area overflow-x-auto table-responsive">
+                    <table id="camera-table" class="w-full text-xs whitespace-nowrap text-left text-slate-700">
+                        <thead id="camera-table-head" class="bg-black text-white uppercase text-[11px] font-semibold tracking-wider"><tr><th class="p-3">No</th><th class="p-3">No. Unit / Lambung</th><th class="p-3">Jenis Kamera</th><th class="p-3">Tanggal Pasang</th><th class="p-3">Merek / Tipe</th><th class="p-3">Serial Number / IMEI</th><th class="p-3">Nomor SIM</th><th class="p-3">Kondisi Kamera</th><th class="p-3">Kondisi Memori</th><th class="p-3">GPS & 4G</th><th class="p-3">Rekam Otomatis</th><th class="p-3">PIC / Keterangan</th><th class="p-3 no-print">Aksi</th></tr></thead>
+                        <tbody id="camera-table-body" class="divide-y divide-slate-200"></tbody>
+                    </table>
+                </div><div id="camera-count" class="p-3 bg-slate-50 text-xs text-slate-500">0 data kamera</div></div>
+            </div>            </div>
             </div>
 
         </div>
     </div>
 
+
+    <div id="modal-camera-record" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-3"><div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-auto"><div class="bg-slate-900 text-white p-4 flex justify-between"><h3 id="camera-modal-title" class="font-bold">Tambah Data Kamera</h3><button type="button" onclick="closeModal('modal-camera-record')">✕</button></div><form id="form-camera-record" onsubmit="saveCameraRecord(event)" class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-3"><input type="hidden" id="camera-kind"><input type="hidden" id="camera-record-id">
+    <label class="text-xs font-semibold">No. unit / nomor lambung<input id="camera-unit" required class="mt-1 w-full border rounded-lg p-2"></label>
+    <label class="text-xs font-semibold">Tanggal pemasangan<input id="camera-date" type="date" required class="mt-1 w-full border rounded-lg p-2"></label>
+    <label class="text-xs font-semibold">Merek dan tipe kamera<input id="camera-model" placeholder="Dashcam: belum dipastikan; kamera mundur: 7CCA04BK atau lainnya" class="mt-1 w-full border rounded-lg p-2"></label>
+    <label class="text-xs font-semibold">Serial Number / IMEI<input id="camera-sn" class="mt-1 w-full border rounded-lg p-2"></label>
+    <div id="dashcam-extra-fields" class="contents">
+    <label class="text-xs font-semibold">Nomor kartu SIM<input id="camera-sim" class="mt-1 w-full border rounded-lg p-2"></label>
+    <label class="text-xs font-semibold">Kondisi kamera<select id="camera-condition" class="mt-1 w-full border rounded-lg p-2"><option>Baik</option><option>Perlu pemeriksaan</option><option>Rusak</option></select></label>
+    <label class="text-xs font-semibold">Kondisi kartu memori<select id="camera-memory" class="mt-1 w-full border rounded-lg p-2"><option>Baik</option><option>Belum diperiksa</option><option>Rusak</option><option>Tidak tersedia</option></select></label>
+    <label class="text-xs font-semibold">Status GPS dan 4G<select id="camera-network" class="mt-1 w-full border rounded-lg p-2"><option>GPS & 4G aktif</option><option>GPS aktif, 4G tidak aktif</option><option>GPS tidak aktif, 4G aktif</option><option>Keduanya tidak aktif</option><option>Belum diperiksa</option></select></label>
+    <label class="text-xs font-semibold">Rekaman otomatis saat kontak ON/OFF<select id="camera-auto-record" class="mt-1 w-full border rounded-lg p-2"><option>Berfungsi</option><option>Tidak berfungsi</option><option>Belum diperiksa</option></select></label></div>
+    <div id="reverse-extra-fields" class="hidden sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <label class="text-xs font-semibold">User<input id="camera-user" type="text" class="mt-1 w-full border rounded-lg p-2"></label>
+        <label class="text-xs font-semibold">Nama Penerima<input id="camera-recipient" type="text" class="mt-1 w-full border rounded-lg p-2"></label>
+    </div>
+    <label class="text-xs font-semibold sm:col-span-2"><span id="camera-notes-label">PIC pemasangan dan keterangan</span><textarea id="camera-notes" rows="2" class="mt-1 w-full border rounded-lg p-2"></textarea></label>
+    <div class="sm:col-span-2 flex justify-end gap-2"><button type="button" onclick="closeModal('modal-camera-record')" class="px-4 py-2 rounded-lg bg-slate-100 text-xs font-bold">Batal</button><button type="submit" class="px-4 py-2 rounded-lg bg-amber-500 text-slate-950 text-xs font-bold">Simpan Data</button></div></form></div></div>
     <!-- ==================== MODAL: PENGATURAN KEAMANAN AKUN ==================== -->
     <div id="modal-settings" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full flex flex-col max-h-[85vh] overflow-hidden border border-slate-200 my-auto">
@@ -512,14 +611,14 @@
                 <!-- Bagian Pengubahan Username & Sandi (Khusus Server) -->
                 <div id="server-only-credentials-box" class="space-y-4 border-t pt-4">
                     <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
-                        <i class="fa-solid fa-key text-amber-500"></i> Kelola Username & Sandi Akun (Akses Server)
+                        <i class="fa-solid fa-key text-amber-500"></i> Kelola Username & Password Admin/Viewer (khusus Server)
                     </h4>
                     
                     <div class="space-y-3 bg-amber-50/50 p-3.5 rounded-xl border border-amber-200">
                         <p class="text-[11px] font-bold text-amber-900 uppercase">Akun Server</p>
                         <div class="grid grid-cols-2 gap-2">
-                            <input type="text" id="input-new-server-user" placeholder="Username baru..." class="text-xs p-2 bg-white border border-slate-300 rounded-lg">
-                            <input type="password" id="input-new-server-pass" placeholder="Password baru..." class="text-xs p-2 bg-white border border-slate-300 rounded-lg">
+                            <input type="text" id="input-new-server-user" value="server (tetap)" disabled class="text-xs p-2 bg-slate-100 border border-slate-300 rounded-lg text-slate-500">
+                            <input type="password" id="input-new-server-pass" value="" disabled placeholder="Tidak diubah" class="text-xs p-2 bg-slate-100 border border-slate-300 rounded-lg text-slate-400">
                         </div>
                     </div>
 
@@ -527,7 +626,7 @@
                         <p class="text-[11px] font-bold text-blue-900 uppercase">Akun Admin</p>
                         <div class="grid grid-cols-2 gap-2">
                             <input type="text" id="input-new-admin-user" placeholder="Username baru..." class="text-xs p-2 bg-white border border-slate-300 rounded-lg">
-                            <input type="password" id="input-new-admin-pass" placeholder="Password baru..." class="text-xs p-2 bg-white border border-slate-300 rounded-lg">
+                            <input type="password" id="input-new-admin-pass" placeholder="Password baru (min. 8), kosong = tetap" class="text-xs p-2 bg-white border border-slate-300 rounded-lg">
                         </div>
                     </div>
 
@@ -535,7 +634,7 @@
                         <p class="text-[11px] font-bold text-slate-800 uppercase">Akun Viewer</p>
                         <div class="grid grid-cols-2 gap-2">
                             <input type="text" id="input-new-viewer-user" placeholder="Username baru..." class="text-xs p-2 bg-white border border-slate-300 rounded-lg">
-                            <input type="password" id="input-new-viewer-pass" placeholder="Password baru..." class="text-xs p-2 bg-white border border-slate-300 rounded-lg">
+                            <input type="password" id="input-new-viewer-pass" placeholder="Password baru (min. 8), kosong = tetap" class="text-xs p-2 bg-white border border-slate-300 rounded-lg">
                         </div>
                     </div>
 
@@ -844,11 +943,145 @@
         </div>
     </footer>
 
+
+    <!-- Firebase SDK: Authentication + Cloud Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
     <!-- JS Logic System -->
     <script>
+
+        // ==================== FIREBASE CLOUD ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyAUk6WQKHTlIs7qBenQ5Z__dTx8IgVjP2A",
+            authDomain: "zainudin-it.firebaseapp.com",
+            projectId: "zainudin-it",
+            storageBucket: "zainudin-it.firebasestorage.app",
+            messagingSenderId: "1083499797787",
+            appId: "1:1083499797787:web:be129da30bbdeb36d547be",
+            measurementId: "G-Y5DPQFVM75"
+        };
+
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const firebaseAuth = firebase.auth();
+        const firestoreDb = firebase.firestore();
+        let firebaseUser = null;
+        let currentUsername = "";
+        let cloudReady = false;
+        let cloudSaveQueue = Promise.resolve();
+
+        function usernameToEmail(value) {
+            const normalized = value.trim().toLowerCase();
+            const accountMap = {
+                "zainudin": "zainudinxitkj@gmail.com",
+                "server": "zainudinxitkj@gmail.com",
+                "zainudinxitkj@gmail.com": "zainudinxitkj@gmail.com",
+                "robi": "robi@radiotrackpro.com",
+                "robi@radiotrackpro.com": "robi@radiotrackpro.com",
+                "staf": "staf@radiotrackpro.com",
+                "staf@radiotrackpro.com": "staf@radiotrackpro.com"
+            };
+            return accountMap[normalized] || (normalized.includes("@") ? normalized : null);
+        }
+
+        // Lokasi dokumen cloud yang berhasil ditemukan saat proses baca.
+        let cloudDataRefs = {};
+
+        async function loadCloudData() {
+            cloudReady = false;
+            const paths = ["radios", "inventory", "repairs", "dashcams", "reverseCameras"];
+
+            // Data utama RadioTrack berada di appData/{nama}. Tetap dukung
+            // format lama {nama}/items bila dokumen utama belum tersedia.
+            const snapshots = await Promise.all(paths.map(async name => {
+                const primaryRef = firestoreDb.collection("appData").doc(name);
+                const legacyRef = firestoreDb.collection(name).doc("items");
+                const primarySnap = await primaryRef.get();
+
+                if (primarySnap.exists) {
+                    return { name, ref: primaryRef, snap: primarySnap, location: "appData/" + name };
+                }
+
+                const legacySnap = await legacyRef.get();
+                if (legacySnap.exists) {
+                    return { name, ref: legacyRef, snap: legacySnap, location: name + "/items" };
+                }
+
+                // Jika belum ada dokumen untuk kategori ini, gunakan lokasi
+                // utama saat ada penambahan data baru. Tidak ada penulisan saat login.
+                return { name, ref: primaryRef, snap: primarySnap, location: "appData/" + name };
+            }));
+
+            const values = snapshots.map(entry => {
+                if (!entry.snap.exists) return [];
+                const data = entry.snap.data() || {};
+                return Array.isArray(data.items) ? data.items : [];
+            });
+
+            // Cloud is the source of truth. Never merge old local data into these arrays.
+            cloudDataRefs = Object.fromEntries(snapshots.map(entry => [entry.name, entry.ref]));
+            radios = values[0];
+            inventory = values[1];
+            repairs = values[2];
+            dashcams = values[3];
+            reverseCameras = values[4];
+            localStorage.setItem(STORAGE_KEY_DASHCAMS, JSON.stringify(dashcams));
+            localStorage.setItem(STORAGE_KEY_REVERSE_CAMERAS, JSON.stringify(reverseCameras));
+            localStorage.setItem(STORAGE_KEY_RADIOS, JSON.stringify(radios));
+            localStorage.setItem(STORAGE_KEY_INVENTORY, JSON.stringify(inventory));
+            localStorage.setItem(STORAGE_KEY_REPAIRS, JSON.stringify(repairs));
+            localStorage.setItem(STORAGE_KEY_DASHCAMS, JSON.stringify(dashcams));
+            localStorage.setItem(STORAGE_KEY_REVERSE_CAMERAS, JSON.stringify(reverseCameras));
+            cloudReady = true;
+
+            const diagnostic = snapshots.map((entry, index) =>
+                entry.location + "=" + (entry.snap.exists ? "ada/" + values[index].length + " data" : "dokumen belum ada")
+            ).join(" | ");
+            console.info("RadioTrack Firebase read diagnostic:", {
+                projectId: firebaseConfig.projectId,
+                database: "(default)",
+                uid: firebaseUser ? firebaseUser.uid : null,
+                diagnostic
+            });
+            showToast("Pembacaan cloud: " + diagnostic, "info");
+        }
+
+        function syncCloudData() {
+            if (!cloudReady || !firebaseUser) return;
+            const uid = firebaseUser.uid;
+            const payloads = {
+                radios: radios,
+                inventory: inventory,
+                repairs: repairs,
+                dashcams: dashcams,
+                reverseCameras: reverseCameras
+            };
+            cloudSaveQueue = cloudSaveQueue.catch(() => {}).then(async () => {
+                await Promise.all(Object.entries(payloads).map(([name, items]) => {
+                    const targetRef = cloudDataRefs[name];
+                    if (!targetRef) {
+                        throw new Error("Lokasi dokumen cloud untuk " + name + " belum ditentukan. Data tidak dikirim.");
+                    }
+                    return targetRef.set({
+                        items: items,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        updatedBy: uid
+                    }, { merge: true });
+                }));
+                showToast("Perubahan berhasil disimpan ke Firebase Cloud.", "success");
+            }).catch(error => {
+                console.error("Firebase cloud save error:", error);
+                showToast("Gagal menyimpan ke cloud: " + (error.message || error.code), "error");
+            });
+            return cloudSaveQueue;
+        }
+
         const STORAGE_KEY_RADIOS = 'bmc_radios_v5';
         const STORAGE_KEY_INVENTORY = 'bmc_inventory_v5';
         const STORAGE_KEY_REPAIRS = 'bmc_repairs_v5';
+        const STORAGE_KEY_DASHCAMS = 'bmc_dashcams_v1';
+        const STORAGE_KEY_REVERSE_CAMERAS = 'bmc_reverse_cameras_v1';
         const STORAGE_KEY_CREDS = 'bmc_custom_creds_v5';
 
         // Credentials
@@ -863,6 +1096,8 @@
         let radios = [];
         let inventory = [];
         let repairs = [];
+        let dashcams = [];
+        let reverseCameras = [];
 
         let statusChartInstance = null;
         let expdChartInstance = null;
@@ -899,47 +1134,127 @@
         }
 
         // ==================== AUTH LOGIN / LOGOUT ====================
-        function handleLogin(e) {
+        async function handleLogin(e) {
             e.preventDefault();
-            const username = document.getElementById('login-username').value.trim().toLowerCase();
-            const password = document.getElementById('login-password').value.trim();
+            const loginButton = document.querySelector('#login-screen button[type="submit"]');
+            const enteredUsername = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            const email = usernameToEmail(enteredUsername);
 
-            if (username === credentials.server.user && password === credentials.server.pass) {
-                currentRole = 'server';
-            } else if (username === credentials.admin.user && password === credentials.admin.pass) {
-                currentRole = 'admin';
-            } else if (username === credentials.viewer.user && password === credentials.viewer.pass) {
-                currentRole = 'viewer';
-            } else {
-                showToast('Username atau Password salah! Apabila ingin akses hubungi Zainudin IT BMC', 'error');
+            if (!enteredUsername || !password) {
+                showToast('Masukkan username dan password.', 'error');
                 return;
             }
 
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('main-app-container').classList.remove('hidden');
+            if (loginButton) {
+                loginButton.disabled = true;
+                loginButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menghubungkan Firebase...';
+            }
 
-            applyRolePermissions();
-            updateDashboard();
-            renderRadioTable();
-            renderInventoryTable();
-            renderRepairTable();
+            try {
+                let credential;
+                let usedUsernameBackend = false;
 
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('radio-commission-date').value = today;
-            document.getElementById('inventory-date').value = today;
-            document.getElementById('repair-report-date').value = today;
-            calculateExpdDate();
+                if (email) {
+                    // Login Server dan akun email lama tetap memakai Firebase Authentication.
+                    credential = await firebaseAuth.signInWithEmailAndPassword(email, password);
+                } else {
+                    // Admin/Viewer baru memakai username tanpa email pribadi.
+                    const response = await fetch((window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform() ? 'https://dingithubio.vercel.app' : '') + '/api/account-login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: enteredUsername, password })
+                    });
+                    const result = await response.json().catch(() => ({}));
+                    if (!response.ok || !result.token) {
+                        throw new Error(result.error || 'Username atau password tidak sesuai.');
+                    }
+                    credential = await firebaseAuth.signInWithCustomToken(result.token);
+                    usedUsernameBackend = true;
+                }
 
-            showToast(`Berhasil masuk sebagai ${currentRole.toUpperCase()}`, 'success');
+                firebaseUser = credential.user;
+                const isOwner = (firebaseUser.email || '').toLowerCase() === 'zainudinxitkj@gmail.com';
+                let profile = null;
+
+                if (isOwner) {
+                    currentRole = 'server';
+                    currentUsername = 'Zainudin IT BMC';
+                } else if (usedUsernameBackend) {
+                    const tokenInfo = await firebaseUser.getIdTokenResult();
+                    currentRole = String(tokenInfo.claims.role || '').toLowerCase();
+                    currentUsername = tokenInfo.claims.username || enteredUsername;
+                    if (!['admin', 'viewer'].includes(currentRole)) {
+                        throw new Error('Peran akun username tidak valid. Hubungi pemilik aplikasi.');
+                    }
+                } else {
+                    const profileSnap = await firestoreDb.collection('users').doc(firebaseUser.uid).get();
+                    if (!profileSnap.exists) {
+                        throw new Error('Profil akun tidak ditemukan di Firestore. Hubungi pemilik aplikasi.');
+                    }
+                    profile = profileSnap.data() || {};
+                    currentRole = String(profile.role || '').toLowerCase();
+                    currentUsername = profile.username || enteredUsername;
+                    if (!['server', 'admin', 'viewer'].includes(currentRole)) {
+                        throw new Error('Peran akun tidak valid. Hubungi pemilik aplikasi.');
+                    }
+                }
+
+                await loadCloudData();
+
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('main-app-container').classList.remove('hidden');
+
+                applyRolePermissions();
+                updateDashboard();
+                renderRadioTable();
+                renderInventoryTable();
+                renderRepairTable();
+                renderCameraTable();
+                syncTableSortControls();
+
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('radio-commission-date').value = today;
+                document.getElementById('inventory-date').value = today;
+                document.getElementById('repair-report-date').value = today;
+                calculateExpdDate();
+
+                showToast('Berhasil masuk Firebase sebagai ' + currentUsername + ' (' + currentRole.toUpperCase() + '). Data diambil dari cloud.', 'success');
+            } catch (error) {
+                console.error('Firebase login error:', error);
+                try { await firebaseAuth.signOut(); } catch (_) {}
+                firebaseUser = null;
+                currentRole = null;
+                currentUsername = '';
+                cloudReady = false;
+                let message = error.message || error.code || 'Gagal masuk Firebase.';
+                if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+                    message = 'Email/username atau password Firebase salah. Password harus password akun Firebase, bukan password login lokal lama.';
+                } else if (error.code === 'permission-denied' || error.code === 'firestore/permission-denied') {
+                    message = 'Akses Firestore ditolak. Periksa Rules dan profil akun.';
+                }
+                showToast(message, 'error');
+            } finally {
+                if (loginButton) {
+                    loginButton.disabled = false;
+                    loginButton.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Masuk ke Sistem';
+                }
+            }
         }
 
-        function handleLogout() {
+        async function handleLogout() {
+            cloudReady = false;
+            firebaseUser = null;
             currentRole = null;
+            currentUsername = '';
+            try { await firebaseAuth.signOut(); } catch (error) {
+                console.error('Firebase sign out error:', error);
+            }
             document.getElementById('main-app-container').classList.add('hidden');
             document.getElementById('login-screen').classList.remove('hidden');
             document.getElementById('login-username').value = '';
             document.getElementById('login-password').value = '';
-            showToast('Anda telah keluar.', 'info');
+            showToast('Anda telah keluar dari Firebase.', 'info');
         }
 
         function applyRolePermissions() {
@@ -953,18 +1268,21 @@
                 document.getElementById('btn-add-radio').style.display = 'inline-flex';
                 document.getElementById('btn-add-inventory').style.display = 'inline-flex';
                 document.getElementById('btn-add-repair').style.display = 'inline-flex';
+                document.getElementById('btn-add-camera').style.display = 'inline-flex';
             } else if (currentRole === 'admin') {
                 badge.className = "bg-blue-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wide";
                 usernameDisplay.innerText = "Admin Editor";
                 document.getElementById('btn-add-radio').style.display = 'inline-flex';
                 document.getElementById('btn-add-inventory').style.display = 'inline-flex';
                 document.getElementById('btn-add-repair').style.display = 'inline-flex';
+                document.getElementById('btn-add-camera').style.display = 'inline-flex';
             } else if (currentRole === 'viewer') {
                 badge.className = "bg-slate-700 text-slate-300 text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wide";
                 usernameDisplay.innerText = "Viewer (Read-Only)";
                 document.getElementById('btn-add-radio').style.display = 'none';
                 document.getElementById('btn-add-inventory').style.display = 'none';
                 document.getElementById('btn-add-repair').style.display = 'none';
+                document.getElementById('btn-add-camera').style.display = 'none';
             }
         }
 
@@ -982,14 +1300,18 @@
                 serverBox.style.display = 'block';
                 resetSection.style.display = 'block';
                 restrictedNotice.classList.add('hidden');
-                notice.innerText = 'Anda login sebagai SERVER. Anda berhak mengubah kredensial dan melakukan reset data sistem.';
+                notice.innerText = 'Anda login sebagai SERVER. Anda dapat mengubah akun Admin dan Viewer. Akun Server tetap dan tidak diubah.';
 
-                document.getElementById('input-new-server-user').value = credentials.server.user;
+                // Akun Server ditampilkan sebagai informasi saja; tidak diubah oleh fitur ini.
+                document.getElementById('input-new-server-user').value = 'server (tetap)';
                 document.getElementById('input-new-server-pass').value = '';
-                document.getElementById('input-new-admin-user').value = credentials.admin.user;
+                document.getElementById('input-new-server-user').disabled = true;
+                document.getElementById('input-new-server-pass').disabled = true;
+                document.getElementById('input-new-admin-user').value = 'admin';
                 document.getElementById('input-new-admin-pass').value = '';
-                document.getElementById('input-new-viewer-user').value = credentials.viewer.user;
+                document.getElementById('input-new-viewer-user').value = 'viewer';
                 document.getElementById('input-new-viewer-pass').value = '';
+                loadUsernameAccountSettings();
             } else {
                 serverBox.style.display = 'none';
                 resetSection.style.display = 'none'; // TUTUP RESET UNTUK ADMIN
@@ -1001,57 +1323,68 @@
             document.getElementById('modal-settings').classList.remove('hidden');
         }
 
-        function saveNewCredentials() {
-            if (currentRole !== 'server') {
-                showToast('Hanya akun SERVER yang dapat mengubah kredensial!', 'error');
+        async function loadUsernameAccountSettings() {
+            if (currentRole !== 'server' || !firebaseUser) return;
+            try {
+                const token = await firebaseUser.getIdToken();
+                const response = await fetch((window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform() ? 'https://dingithubio.vercel.app' : '') + '/api/account-manage', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const result = await response.json().catch(() => ({}));
+                if (!response.ok) throw new Error(result.error || 'Tidak dapat memuat akun.');
+                document.getElementById('input-new-admin-user').value = result.adminUsername || 'admin';
+                document.getElementById('input-new-viewer-user').value = result.viewerUsername || 'viewer';
+            } catch (error) {
+                showToast('Pengaturan akun belum aktif: ' + error.message, 'error');
+            }
+        }
+
+        async function saveNewCredentials() {
+            if (currentRole !== 'server' || !firebaseUser) {
+                showToast('Hanya Server yang dapat mengubah akun Admin dan Viewer.', 'error');
+                return;
+            }
+            const adminUsername = document.getElementById('input-new-admin-user').value.trim();
+            const adminPassword = document.getElementById('input-new-admin-pass').value;
+            const viewerUsername = document.getElementById('input-new-viewer-user').value.trim();
+            const viewerPassword = document.getElementById('input-new-viewer-pass').value;
+
+            if (!adminUsername || !viewerUsername) {
+                showToast('Username Admin dan Viewer wajib diisi.', 'error');
+                return;
+            }
+            if ((adminPassword && adminPassword.length < 8) || (viewerPassword && viewerPassword.length < 8)) {
+                showToast('Password baru minimal 8 karakter.', 'error');
                 return;
             }
 
-            const sUser = document.getElementById('input-new-server-user').value.trim().toLowerCase();
-            const sPass = document.getElementById('input-new-server-pass').value.trim();
-            const aUser = document.getElementById('input-new-admin-user').value.trim().toLowerCase();
-            const aPass = document.getElementById('input-new-admin-pass').value.trim();
-            const vUser = document.getElementById('input-new-viewer-user').value.trim().toLowerCase();
-            const vPass = document.getElementById('input-new-viewer-pass').value.trim();
-
-            if (sUser) credentials.server.user = sUser;
-            if (sPass) credentials.server.pass = sPass;
-
-            if (aUser) credentials.admin.user = aUser;
-            if (aPass) credentials.admin.pass = aPass;
-
-            if (vUser) credentials.viewer.user = vUser;
-            if (vPass) credentials.viewer.pass = vPass;
-
-            localStorage.setItem(STORAGE_KEY_CREDS, JSON.stringify(credentials));
-            closeModal('modal-settings');
-            showToast('Username & Sandi berhasil diperbarui!', 'success');
+            const button = document.querySelector('#server-only-credentials-box button');
+            const original = button ? button.innerHTML : '';
+            if (button) { button.disabled = true; button.innerHTML = 'Menyimpan akun...'; }
+            try {
+                const token = await firebaseUser.getIdToken();
+                const response = await fetch('/api/account-manage', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({
+                        admin: { username: adminUsername, password: adminPassword },
+                        viewer: { username: viewerUsername, password: viewerPassword }
+                    })
+                });
+                const result = await response.json().catch(() => ({}));
+                if (!response.ok) throw new Error(result.error || 'Gagal menyimpan akun.');
+                document.getElementById('input-new-admin-pass').value = '';
+                document.getElementById('input-new-viewer-pass').value = '';
+                showToast('Username dan password Admin/Viewer berhasil disimpan di cloud.', 'success');
+            } catch (error) {
+                showToast('Gagal menyimpan akun: ' + error.message, 'error');
+            } finally {
+                if (button) { button.disabled = false; button.innerHTML = original; }
+            }
         }
 
         function executeSecureReset() {
-            if (currentRole !== 'server') {
-                showToast('Akses Ditolak! Opsi Reset hanya untuk akun SERVER (Zainudin IT BMC).', 'error');
-                return;
-            }
-
-            const enteredPass = document.getElementById('input-reset-confirmation-pass').value.trim();
-            if (enteredPass !== credentials.server.pass) {
-                showToast('Sandi Server salah! Reset dibatalkan.', 'error');
-                return;
-            }
-
-            if (confirm('PERINGATAN: Seluruh data akan dikembalikan ke kondisi mode awal. Lanjutkan?')) {
-                radios = [...initialRadios];
-                inventory = [...initialInventory];
-                repairs = [...initialRepairs];
-                saveToLocalStorage();
-                updateDashboard();
-                renderRadioTable();
-                renderInventoryTable();
-                renderRepairTable();
-                closeModal('modal-settings');
-                showToast('Sistem berhasil di-reset ke mode awal.', 'info');
-            }
+            showToast('Reset lokal dinonaktifkan agar data utama Firebase tidak terhapus atau tertimpa.', 'error');
         }
 
         // ==================== STORAGE & DATA HANDLING ====================
@@ -1059,18 +1392,26 @@
             const storedR = localStorage.getItem(STORAGE_KEY_RADIOS);
             const storedI = localStorage.getItem(STORAGE_KEY_INVENTORY);
             const storedRep = localStorage.getItem(STORAGE_KEY_REPAIRS);
+            const storedDash = localStorage.getItem(STORAGE_KEY_DASHCAMS);
+            const storedReverse = localStorage.getItem(STORAGE_KEY_REVERSE_CAMERAS);
 
             radios = storedR ? JSON.parse(storedR) : initialRadios;
             inventory = storedI ? JSON.parse(storedI) : initialInventory;
             repairs = storedRep ? JSON.parse(storedRep) : initialRepairs;
+            dashcams = storedDash ? JSON.parse(storedDash) : [];
+            reverseCameras = storedReverse ? JSON.parse(storedReverse) : [];
 
             if (!storedR) saveToLocalStorage();
         }
 
         function saveToLocalStorage() {
+            // Cache lokal hanya salinan; Firebase tetap menjadi sumber data utama.
             localStorage.setItem(STORAGE_KEY_RADIOS, JSON.stringify(radios));
             localStorage.setItem(STORAGE_KEY_INVENTORY, JSON.stringify(inventory));
             localStorage.setItem(STORAGE_KEY_REPAIRS, JSON.stringify(repairs));
+            localStorage.setItem(STORAGE_KEY_DASHCAMS, JSON.stringify(dashcams));
+            localStorage.setItem(STORAGE_KEY_REVERSE_CAMERAS, JSON.stringify(reverseCameras));
+            if (cloudReady && firebaseUser) syncCloudData();
         }
 
         function switchTab(tabName) {
@@ -1086,6 +1427,7 @@
             activeBtn.classList.add('active', 'border-amber-500', 'text-amber-600');
 
             if (tabName === 'dashboard') updateDashboard();
+            if (tabName === 'cameras') renderCameraTable();
         }
 
         function calculateExpdDate() {
@@ -1180,6 +1522,12 @@
             document.getElementById('count-xir-c2660').innerText = countC2660 + ' Unit';
             document.getElementById('count-cp1660').innerText = countCP1660 + ' Unit';
 
+            document.getElementById('stat-total-camera').innerText = dashcams.length + reverseCameras.length;
+            document.getElementById('stat-dashcam').innerText = dashcams.length;
+            document.getElementById('stat-reverse-camera').innerText = reverseCameras.length;
+            const cameraIssues = dashcams.filter(x => (x.condition && x.condition !== 'Baik') || (x.memory && !['Baik','Tidak tersedia'].includes(x.memory)) || (x.network && x.network !== 'GPS & 4G aktif') || (x.autoRecord && x.autoRecord !== 'Berfungsi')).length;
+            document.getElementById('stat-camera-issues').innerText = cameraIssues;
+
             renderCharts(good, damaged, countM3688, countC2660, countCP1660);
         }
 
@@ -1209,13 +1557,53 @@
             });
         }
 
+        // ==================== TABLE DISPLAY ORDER ====================
+        const TABLE_SORT_STORAGE_KEY = 'radiotrack_table_sort_order';
+        let tableSortOrder = localStorage.getItem(TABLE_SORT_STORAGE_KEY) || 'newest-first';
+
+        function recordCreatedTimestamp(record, dateField) {
+            const idMatch = String(record && record.id || '').match(/(\d{10,})$/);
+            if (idMatch) {
+                const idTime = Number(idMatch[1]);
+                if (Number.isFinite(idTime)) return idTime;
+            }
+            const dateValue = record && record[dateField];
+            if (dateValue) {
+                const parsed = Date.parse(dateValue);
+                if (Number.isFinite(parsed)) return parsed;
+            }
+            return 0;
+        }
+
+        function sortRecordsForDisplay(records, dateField) {
+            const sorted = records.slice().sort((a, b) =>
+                recordCreatedTimestamp(a, dateField) - recordCreatedTimestamp(b, dateField)
+            );
+            if (tableSortOrder === 'newest-last') return sorted;
+            return sorted.reverse();
+        }
+
+        function setTableSortOrder(value) {
+            tableSortOrder = value === 'newest-last' ? 'newest-last' : 'newest-first';
+            try { localStorage.setItem(TABLE_SORT_STORAGE_KEY, tableSortOrder); } catch (_) {}
+            document.querySelectorAll('.table-sort-order').forEach(select => { select.value = tableSortOrder; });
+            renderRadioTable();
+            renderInventoryTable();
+            renderRepairTable();
+            renderCameraTable();
+        }
+
+        function syncTableSortControls() {
+            document.querySelectorAll('.table-sort-order').forEach(select => { select.value = tableSortOrder; });
+        }
+
         // ==================== MASTER RADIO ====================
         function renderRadioTable() {
             const searchVal = document.getElementById('search-radio').value.toLowerCase();
             const filterModel = document.getElementById('filter-radio-model').value;
             const filterStatus = document.getElementById('filter-radio-status').value;
 
-            const filtered = radios.filter(r => {
+            const filtered = sortRecordsForDisplay(radios.filter(r => {
                 const matchesSearch = (r.itemName && r.itemName.toLowerCase().includes(searchVal)) ||
                                       (r.pttId && r.pttId.toLowerCase().includes(searchVal)) ||
                                       r.sn.toLowerCase().includes(searchVal) ||
@@ -1225,7 +1613,7 @@
                 const matchesModel = filterModel === 'ALL' || r.model === filterModel;
                 const matchesStatus = filterStatus === 'ALL' || r.status === filterStatus;
                 return matchesSearch && matchesModel && matchesStatus;
-            });
+            }), 'commissionDate');
 
             const tbody = document.getElementById('radio-table-body');
             const thAction = document.getElementById('th-action-radio');
@@ -1386,14 +1774,14 @@
             const searchVal = document.getElementById('search-inventory').value.toLowerCase();
             const filterType = document.getElementById('filter-inventory-type').value;
 
-            const filtered = inventory.filter(i => {
+            const filtered = sortRecordsForDisplay(inventory.filter(i => {
                 const matchesSearch = i.name.toLowerCase().includes(searchVal) ||
                                       (i.pttId && i.pttId.toLowerCase().includes(searchVal)) ||
                                       i.person.toLowerCase().includes(searchVal) ||
                                       (i.dept && i.dept.toLowerCase().includes(searchVal));
                 const matchesType = filterType === 'ALL' || i.type === filterType;
                 return matchesSearch && matchesType;
-            });
+            }), 'date');
 
             const tbody = document.getElementById('inventory-table-body');
             const thAction = document.getElementById('th-action-inventory');
@@ -1512,12 +1900,12 @@
 
         function renderRepairTable() {
             const searchVal = document.getElementById('search-repair').value.toLowerCase();
-            const filtered = repairs.filter(r => {
+            const filtered = sortRecordsForDisplay(repairs.filter(r => {
                 return (r.itemName && r.itemName.toLowerCase().includes(searchVal)) ||
                        r.sn.toLowerCase().includes(searchVal) ||
                        r.issue.toLowerCase().includes(searchVal) ||
                        (r.tech && r.tech.toLowerCase().includes(searchVal));
-            });
+            }), 'date');
 
             const tbody = document.getElementById('repair-table-body');
             const thAction = document.getElementById('th-action-repair');
@@ -1632,6 +2020,141 @@
             }
         }
 
+
+        // ==================== DASHCAM & REAR CAMERA ====================
+        function cameraEscape(value) { return escapeHtml(value == null || value === '' ? '-' : String(value)); }
+        function cameraAction(kind, id) {
+            if (currentRole === 'viewer') return '';
+            return '<td class="p-3 text-center no-print whitespace-nowrap"><button onclick="editCameraRecord(\''+kind+'\',\''+id+'\')" class="text-blue-600 px-2" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="deleteCameraRecord(\''+kind+'\',\''+id+'\')" class="text-rose-600 px-2" title="Hapus"><i class="fa-solid fa-trash"></i></button></td>';
+        }
+        function renderCameraTable() {
+            const query = (document.getElementById('search-camera')?.value || '').toLowerCase().trim();
+            const kindFilter = document.getElementById('filter-camera-kind')?.value || 'ALL';
+            const combined = [...dashcams.map(x => ({...x,cameraKind:'dashcam',cameraKindLabel:'Dashcam'})), ...reverseCameras.map(x => ({...x,cameraKind:'reverse',cameraKindLabel:'Kamera Mundur'}))];
+            const rows = sortRecordsForDisplay(combined.filter(x => (kindFilter === 'ALL' || x.cameraKind === kindFilter) && Object.values(x).join(' ').toLowerCase().includes(query)), 'date');
+            const head = document.getElementById('camera-table-head');
+            const body = document.getElementById('camera-table-body');
+            // Gunakan layout ringkas jika filter Kamera Mundur aktif, atau seluruh hasil pencarian hanya berisi Kamera Mundur.
+            const reverseOnly = kindFilter === 'reverse' || (rows.length > 0 && rows.every(x => x.cameraKind === 'reverse'));
+            const reverseDetails = x => {
+                const legacy = String(x.notes || '').split(/\s*\|\s*/);
+                return {
+                    user: x.user || legacy[0] || '',
+                    recipient: x.recipient || legacy[1] || '',
+                    ket: x.ket || (x.user || x.recipient ? '' : legacy.slice(2).join(' | ')) || ''
+                };
+            };
+            // Kamera Mundur tidak menggunakan kolom khusus Dashcam; sembunyikan agar tabel lebih ringkas.
+            if (head) {
+                head.innerHTML = reverseOnly
+                    ? '<tr><th class="p-3">No</th><th class="p-3">No. Unit / Lambung</th><th class="p-3">Tanggal Pasang</th><th class="p-3">Serial Number</th><th class="p-3">User</th><th class="p-3">Nama Penerima</th><th class="p-3">Ket</th><th class="p-3 no-print">Aksi</th></tr>'
+                    : '<tr><th class="p-3">No</th><th class="p-3">No. Unit / Lambung</th><th class="p-3">Jenis Kamera</th><th class="p-3">Tanggal Pasang</th><th class="p-3">Merek / Tipe</th><th class="p-3">Serial Number / IMEI</th><th class="p-3">Nomor SIM</th><th class="p-3">Kondisi Kamera</th><th class="p-3">Kondisi Memori</th><th class="p-3">GPS & 4G</th><th class="p-3">Rekam Otomatis</th><th class="p-3">PIC / Keterangan</th><th class="p-3 no-print">Aksi</th></tr>';
+            }
+            body.innerHTML = rows.length ? rows.map((x,i) => {
+                if (reverseOnly) {
+                    const details = reverseDetails(x);
+                    return '<tr class="hover:bg-slate-50"><td class="p-3">'+(i+1)+'</td><td class="p-3 font-bold">'+cameraEscape(x.unit)+'</td><td class="p-3">'+formatDate(x.date)+'</td><td class="p-3 font-mono">'+cameraEscape(x.sn)+'</td><td class="p-3">'+cameraEscape(details.user)+'</td><td class="p-3">'+cameraEscape(details.recipient)+'</td><td class="p-3">'+cameraEscape(details.ket)+'</td>'+cameraAction(x.cameraKind,x.id)+'</tr>';
+                }
+                const common = '<td class="p-3">'+(i+1)+'</td><td class="p-3 font-bold">'+cameraEscape(x.unit)+'</td><td class="p-3">'+x.cameraKindLabel+'</td><td class="p-3">'+formatDate(x.date)+'</td>';
+                return '<tr class="hover:bg-slate-50">'+common+'<td class="p-3">'+cameraEscape(x.model)+'</td><td class="p-3 font-mono">'+cameraEscape(x.sn)+'</td><td class="p-3">'+(x.cameraKind==='dashcam'?cameraEscape(x.sim):'—')+'</td><td class="p-3">'+(x.cameraKind==='dashcam'?cameraEscape(x.condition):'—')+'</td><td class="p-3">'+(x.cameraKind==='dashcam'?cameraEscape(x.memory):'—')+'</td><td class="p-3">'+(x.cameraKind==='dashcam'?cameraEscape(x.network):'—')+'</td><td class="p-3">'+(x.cameraKind==='dashcam'?cameraEscape(x.autoRecord):'—')+'</td><td class="p-3">'+cameraEscape(x.notes)+'</td>'+cameraAction(x.cameraKind,x.id)+'</tr>';
+            }).join('') : '<tr><td colspan="'+(reverseOnly?8:13)+'" class="p-8 text-center text-slate-400">Belum ada data kamera.</td></tr>';
+            document.getElementById('camera-count').innerText = 'Menampilkan '+rows.length+' dari '+combined.length+' data kamera';
+        }
+        function openCameraModal(kind,id=null) {
+            if(currentRole==='viewer') return;
+            const reverse=kind==='reverse', list=reverse?reverseCameras:dashcams;
+            document.getElementById('form-camera-record').reset();
+            document.getElementById('camera-kind').value=kind;
+            document.getElementById('camera-record-id').value='';
+            document.getElementById('camera-date').value=new Date().toISOString().slice(0,10);
+            document.getElementById('dashcam-extra-fields').classList.toggle('hidden',reverse);
+            document.getElementById('reverse-extra-fields').classList.toggle('hidden',!reverse);
+            document.getElementById('camera-notes-label').innerText=reverse?'Ket':'PIC pemasangan dan keterangan';
+            document.getElementById('camera-modal-title').innerText=reverse?'Data Kamera Mundur':'Data Kamera Dashcam';
+            if(id){const x=list.find(v=>v.id===id);if(x){document.getElementById('camera-record-id').value=x.id;document.getElementById('camera-unit').value=x.unit||'';document.getElementById('camera-date').value=x.date||'';document.getElementById('camera-model').value=x.model||'';document.getElementById('camera-sn').value=x.sn||'';document.getElementById('camera-sim').value=x.sim||'';document.getElementById('camera-condition').value=x.condition||'Baik';document.getElementById('camera-memory').value=x.memory||'Belum diperiksa';document.getElementById('camera-network').value=x.network||'Belum diperiksa';document.getElementById('camera-auto-record').value=x.autoRecord||'';const legacy=String(x.notes||'').split(/\s*\|\s*/);document.getElementById('camera-user').value=x.user||legacy[0]||'';document.getElementById('camera-recipient').value=x.recipient||legacy[1]||'';document.getElementById('camera-notes').value=reverse?(x.ket||((x.user||x.recipient)?'':legacy.slice(2).join(' | '))||''):(x.notes||'');}}
+            document.getElementById('modal-camera-record').classList.remove('hidden');
+        }
+        function cameraImportDate(value, XLSX) {
+            if (value instanceof Date && !isNaN(value)) {
+                return value.getFullYear()+'-'+String(value.getMonth()+1).padStart(2,'0')+'-'+String(value.getDate()).padStart(2,'0');
+            }
+            if (typeof value === 'number' && XLSX.SSF) {
+                const d=XLSX.SSF.parse_date_code(value);
+                if(d) return d.y+'-'+String(d.m).padStart(2,'0')+'-'+String(d.d).padStart(2,'0');
+            }
+            const raw=String(value??'').trim();
+            if(!raw) return '';
+            let m=raw.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
+            if(m) return m[3]+'-'+m[1].padStart(2,'0')+'-'+m[2].padStart(2,'0');
+            m=raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+            if(m) return m[1]+'-'+m[2].padStart(2,'0')+'-'+m[3].padStart(2,'0');
+            return '';
+        }
+
+        async function importCameraExcel(event) {
+            const file=event.target.files?.[0];
+            if(!file) return;
+            if(currentRole==='viewer') { showToast('Akun viewer tidak dapat mengimpor data.','error'); event.target.value=''; return; }
+            if(typeof XLSX==='undefined') { showToast('Pembaca Excel belum termuat. Periksa koneksi internet lalu coba lagi.','error'); event.target.value=''; return; }
+            try {
+                const buffer=await file.arrayBuffer();
+                const workbook=XLSX.read(buffer,{type:'array',cellDates:true});
+                let rows=[], headerIndex=-1, headers=[];
+                for(const sheetName of workbook.SheetNames) {
+                    const matrix=XLSX.utils.sheet_to_json(workbook.Sheets[sheetName],{header:1,defval:'',raw:true});
+                    const idx=matrix.findIndex(row=>{
+                        const h=row.map(v=>String(v??'').trim().toUpperCase());
+                        return h.includes('UNIT') && h.includes('SN') && h.some(x=>x.includes('TANGGAL'));
+                    });
+                    if(idx>=0) { rows=matrix; headerIndex=idx; headers=matrix[idx].map(v=>String(v??'').trim().toUpperCase()); break; }
+                }
+                if(headerIndex<0) throw new Error('Header UNIT, SN, dan TANGGAL tidak ditemukan. Pastikan file memiliki judul kolom seperti contoh.');
+                const col=(names)=>headers.findIndex(h=>names.some(n=>h===n || h.includes(n)));
+                const cUnit=col(['UNIT']), cSn=col(['SN','SERIAL NUMBER']), cDept=col(['DEPT','DEPARTEMEN']), cPic=col(['NAMA PENERIMA','PIC','PENERIMA']), cDate=col(['TANGGAL']);
+                if(cUnit<0 || cSn<0 || cDate<0) throw new Error('Kolom wajib UNIT, SN, atau TANGGAL tidak lengkap.');
+                const imported=[];
+                for(let r=headerIndex+1;r<rows.length;r++) {
+                    const row=rows[r]||[];
+                    const unit=String(row[cUnit]??'').trim();
+                    if(!unit) continue;
+                    const date=cameraImportDate(row[cDate],XLSX);
+                    if(!date) continue;
+                    const sn=String(row[cSn]??'').trim();
+                    const dept=cDept>=0?String(row[cDept]??'').trim():'';
+                    const pic=cPic>=0?String(row[cPic]??'').trim():'';
+                    imported.push({id:'CAM-IMPORT-'+Date.now()+'-'+r+'-'+imported.length,unit,date,model:'',sn,user:dept,recipient:pic,ket:'',notes:''});
+                }
+                if(!imported.length) throw new Error('Tidak ada baris data valid. Periksa isi UNIT dan TANGGAL.');
+                const ok=confirm('Ditemukan '+imported.length+' data kamera mundur. Semua data akan ditambahkan, termasuk unit yang berulang. Data lama tidak dihapus. Lanjutkan?');
+                if(!ok) return;
+                reverseCameras=[...reverseCameras,...imported];
+                saveToLocalStorage();
+                renderCameraTable();
+                updateDashboard();
+                showToast(imported.length+' data kamera mundur berhasil ditambahkan.','success');
+            } catch(error) {
+                console.error('Import kamera gagal:',error);
+                showToast(error.message||'Gagal membaca file Excel.','error');
+            } finally {
+                event.target.value='';
+            }
+        }
+
+        function saveCameraRecord(e) {
+            e.preventDefault();if(currentRole==='viewer')return;
+            const kind=document.getElementById('camera-kind').value, reverse=kind==='reverse';
+            const list=reverse?reverseCameras:dashcams, id=document.getElementById('camera-record-id').value;
+            const notesValue=document.getElementById('camera-notes').value.trim();
+            const data={id:id||'CAM-'+Date.now(),unit:document.getElementById('camera-unit').value.trim(),date:document.getElementById('camera-date').value,model:document.getElementById('camera-model').value.trim(),sn:document.getElementById('camera-sn').value.trim(),notes:reverse?'':notesValue};
+            if(reverse)Object.assign(data,{user:document.getElementById('camera-user').value.trim(),recipient:document.getElementById('camera-recipient').value.trim(),ket:notesValue});
+            if(!reverse)Object.assign(data,{sim:document.getElementById('camera-sim').value.trim(),condition:document.getElementById('camera-condition').value,memory:document.getElementById('camera-memory').value,network:document.getElementById('camera-network').value,autoRecord:document.getElementById('camera-auto-record').value});
+            const index=list.findIndex(x=>x.id===id);if(index>=0)list[index]=data;else list.push(data);
+            saveToLocalStorage();renderCameraTable();updateDashboard();closeModal('modal-camera-record');
+            showToast('Data '+(reverse?'kamera mundur':'Dashcam')+' berhasil disimpan.','success');
+        }
+        function editCameraRecord(kind,id){openCameraModal(kind,id);}
+        function deleteCameraRecord(kind,id){if(currentRole==='viewer')return;if(!confirm('Hapus data kamera ini?'))return;if(kind==='reverse')reverseCameras=reverseCameras.filter(x=>x.id!==id);else dashcams=dashcams.filter(x=>x.id!==id);saveToLocalStorage();renderCameraTable();updateDashboard();showToast('Data kamera dihapus.','info');}
+
         // ==================== HELPER UTILITIES ====================
         function closeModal(modalId) { document.getElementById(modalId).classList.add('hidden'); }
 
@@ -1698,6 +2221,15 @@
             downloadLink.click();
             document.body.removeChild(downloadLink);
             showToast(`File ${filename} berhasil diunduh.`, 'info');
+        }
+    </script>
+    <script>
+        // PWA: network-only navigation handling; Firebase authentication and data are never cached.
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => {
+                navigator.serviceWorker.register("/service-worker.js", { scope: "/" })
+                    .catch(error => console.warn("RadioTrack PWA registration failed:", error));
+            });
         }
     </script>
 </body>

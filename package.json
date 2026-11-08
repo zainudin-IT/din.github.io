@@ -1,0 +1,28 @@
+{
+  "name": "radiotrack-pro",
+  "version": "2.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "cap:sync": "npm run native:prepare && cap sync",
+    "cap:android": "cap open android",
+    "cap:ios": "cap open ios",
+    "native:prepare": "node scripts/prepare-native.mjs"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "firebase-admin": "^12.7.0",
+    "@capacitor/core": "^7.4.3",
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/ios": "^7.4.3",
+    "@capacitor/status-bar": "^7.0.2",
+    "@capacitor/splash-screen": "^7.0.2",
+    "@capacitor/keyboard": "^7.0.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.4.3",
+    "typescript": "^5.8.3"
+  }
+}
