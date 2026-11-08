@@ -579,7 +579,11 @@
     <label class="text-xs font-semibold">Kondisi kartu memori<select id="camera-memory" class="mt-1 w-full border rounded-lg p-2"><option>Baik</option><option>Belum diperiksa</option><option>Rusak</option><option>Tidak tersedia</option></select></label>
     <label class="text-xs font-semibold">Status GPS dan 4G<select id="camera-network" class="mt-1 w-full border rounded-lg p-2"><option>GPS & 4G aktif</option><option>GPS aktif, 4G tidak aktif</option><option>GPS tidak aktif, 4G aktif</option><option>Keduanya tidak aktif</option><option>Belum diperiksa</option></select></label>
     <label class="text-xs font-semibold">Rekaman otomatis saat kontak ON/OFF<select id="camera-auto-record" class="mt-1 w-full border rounded-lg p-2"><option>Berfungsi</option><option>Tidak berfungsi</option><option>Belum diperiksa</option></select></label></div>
-    <label class="text-xs font-semibold sm:col-span-2">PIC pemasangan dan keterangan<textarea id="camera-notes" rows="2" class="mt-1 w-full border rounded-lg p-2"></textarea></label>
+    <div id="reverse-extra-fields" class="hidden sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <label class="text-xs font-semibold">User<input id="camera-user" type="text" class="mt-1 w-full border rounded-lg p-2"></label>
+        <label class="text-xs font-semibold">Nama Penerima<input id="camera-recipient" type="text" class="mt-1 w-full border rounded-lg p-2"></label>
+    </div>
+    <label class="text-xs font-semibold sm:col-span-2"><span id="camera-notes-label">PIC pemasangan dan keterangan</span><textarea id="camera-notes" rows="2" class="mt-1 w-full border rounded-lg p-2"></textarea></label>
     <div class="sm:col-span-2 flex justify-end gap-2"><button type="button" onclick="closeModal('modal-camera-record')" class="px-4 py-2 rounded-lg bg-slate-100 text-xs font-bold">Batal</button><button type="submit" class="px-4 py-2 rounded-lg bg-amber-500 text-slate-950 text-xs font-bold">Simpan Data</button></div></form></div></div>
     <!-- ==================== MODAL: PENGATURAN KEAMANAN AKUN ==================== -->
     <div id="modal-settings" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
@@ -2025,19 +2029,28 @@
             const body = document.getElementById('camera-table-body');
             // Gunakan layout ringkas jika filter Kamera Mundur aktif, atau seluruh hasil pencarian hanya berisi Kamera Mundur.
             const reverseOnly = kindFilter === 'reverse' || (rows.length > 0 && rows.every(x => x.cameraKind === 'reverse'));
+            const reverseDetails = x => {
+                const legacy = String(x.notes || '').split(/\\s*\\|\\s*/);
+                return {
+                    user: x.user || legacy[0] || '',
+                    recipient: x.recipient || legacy[1] || '',
+                    ket: x.ket || (x.user || x.recipient ? '' : legacy.slice(2).join(' | ')) || ''
+                };
+            };
             // Kamera Mundur tidak menggunakan kolom khusus Dashcam; sembunyikan agar tabel lebih ringkas.
             if (head) {
                 head.innerHTML = reverseOnly
-                    ? '<tr><th class="p-3">No</th><th class="p-3">No. Unit / Lambung</th><th class="p-3">Tanggal Pasang</th><th class="p-3">Serial Number</th><th class="p-3">PIC / Keterangan</th><th class="p-3 no-print">Aksi</th></tr>'
+                    ? '<tr><th class="p-3">No</th><th class="p-3">No. Unit / Lambung</th><th class="p-3">Tanggal Pasang</th><th class="p-3">Serial Number</th><th class="p-3">User</th><th class="p-3">Nama Penerima</th><th class="p-3 no-print">Aksi</th><th class="p-3">Ket</th></tr>'
                     : '<tr><th class="p-3">No</th><th class="p-3">No. Unit / Lambung</th><th class="p-3">Jenis Kamera</th><th class="p-3">Tanggal Pasang</th><th class="p-3">Merek / Tipe</th><th class="p-3">Serial Number / IMEI</th><th class="p-3">Nomor SIM</th><th class="p-3">Kondisi Kamera</th><th class="p-3">Kondisi Memori</th><th class="p-3">GPS & 4G</th><th class="p-3">Rekam Otomatis</th><th class="p-3">PIC / Keterangan</th><th class="p-3 no-print">Aksi</th></tr>';
             }
             body.innerHTML = rows.length ? rows.map((x,i) => {
                 if (reverseOnly) {
-                    return '<tr class="hover:bg-slate-50"><td class="p-3">'+(i+1)+'</td><td class="p-3 font-bold">'+cameraEscape(x.unit)+'</td><td class="p-3">'+formatDate(x.date)+'</td><td class="p-3 font-mono">'+cameraEscape(x.sn)+'</td><td class="p-3">'+cameraEscape(x.notes)+'</td>'+cameraAction(x.cameraKind,x.id)+'</tr>';
+                    const details = reverseDetails(x);
+                    return '<tr class="hover:bg-slate-50"><td class="p-3">'+(i+1)+'</td><td class="p-3 font-bold">'+cameraEscape(x.unit)+'</td><td class="p-3">'+formatDate(x.date)+'</td><td class="p-3 font-mono">'+cameraEscape(x.sn)+'</td><td class="p-3">'+cameraEscape(details.user)+'</td><td class="p-3">'+cameraEscape(details.recipient)+'</td>'+cameraAction(x.cameraKind,x.id)+'<td class="p-3">'+cameraEscape(details.ket)+'</td></tr>';
                 }
                 const common = '<td class="p-3">'+(i+1)+'</td><td class="p-3 font-bold">'+cameraEscape(x.unit)+'</td><td class="p-3">'+x.cameraKindLabel+'</td><td class="p-3">'+formatDate(x.date)+'</td>';
                 return '<tr class="hover:bg-slate-50">'+common+'<td class="p-3">'+cameraEscape(x.model)+'</td><td class="p-3 font-mono">'+cameraEscape(x.sn)+'</td><td class="p-3">'+(x.cameraKind==='dashcam'?cameraEscape(x.sim):'—')+'</td><td class="p-3">'+(x.cameraKind==='dashcam'?cameraEscape(x.condition):'—')+'</td><td class="p-3">'+(x.cameraKind==='dashcam'?cameraEscape(x.memory):'—')+'</td><td class="p-3">'+(x.cameraKind==='dashcam'?cameraEscape(x.network):'—')+'</td><td class="p-3">'+(x.cameraKind==='dashcam'?cameraEscape(x.autoRecord):'—')+'</td><td class="p-3">'+cameraEscape(x.notes)+'</td>'+cameraAction(x.cameraKind,x.id)+'</tr>';
-            }).join('') : '<tr><td colspan="'+(reverseOnly?6:13)+'" class="p-8 text-center text-slate-400">Belum ada data kamera.</td></tr>';
+            }).join('') : '<tr><td colspan="'+(reverseOnly?8:13)+'" class="p-8 text-center text-slate-400">Belum ada data kamera.</td></tr>';
             document.getElementById('camera-count').innerText = 'Menampilkan '+rows.length+' dari '+combined.length+' data kamera';
         }
         function openCameraModal(kind,id=null) {
@@ -2048,8 +2061,10 @@
             document.getElementById('camera-record-id').value='';
             document.getElementById('camera-date').value=new Date().toISOString().slice(0,10);
             document.getElementById('dashcam-extra-fields').classList.toggle('hidden',reverse);
+            document.getElementById('reverse-extra-fields').classList.toggle('hidden',!reverse);
+            document.getElementById('camera-notes-label').innerText=reverse?'Ket':'PIC pemasangan dan keterangan';
             document.getElementById('camera-modal-title').innerText=reverse?'Data Kamera Mundur':'Data Kamera Dashcam';
-            if(id){const x=list.find(v=>v.id===id);if(x){document.getElementById('camera-record-id').value=x.id;document.getElementById('camera-unit').value=x.unit||'';document.getElementById('camera-date').value=x.date||'';document.getElementById('camera-model').value=x.model||'';document.getElementById('camera-sn').value=x.sn||'';document.getElementById('camera-sim').value=x.sim||'';document.getElementById('camera-condition').value=x.condition||'Baik';document.getElementById('camera-memory').value=x.memory||'Belum diperiksa';document.getElementById('camera-network').value=x.network||'Belum diperiksa';document.getElementById('camera-auto-record').value=x.autoRecord||'Belum diperiksa';document.getElementById('camera-notes').value=x.notes||'';}}
+            if(id){const x=list.find(v=>v.id===id);if(x){document.getElementById('camera-record-id').value=x.id;document.getElementById('camera-unit').value=x.unit||'';document.getElementById('camera-date').value=x.date||'';document.getElementById('camera-model').value=x.model||'';document.getElementById('camera-sn').value=x.sn||'';document.getElementById('camera-sim').value=x.sim||'';document.getElementById('camera-condition').value=x.condition||'Baik';document.getElementById('camera-memory').value=x.memory||'Belum diperiksa';document.getElementById('camera-network').value=x.network||'Belum diperiksa';document.getElementById('camera-auto-record').value=x.autoRecord||'';const legacy=String(x.notes||'').split(/\\s*\\|\\s*/);document.getElementById('camera-user').value=x.user||legacy[0]||'';document.getElementById('camera-recipient').value=x.recipient||legacy[1]||'';document.getElementById('camera-notes').value=reverse?(x.ket||((x.user||x.recipient)?'':legacy.slice(2).join(' | '))||''):(x.notes||'');}}
             document.getElementById('modal-camera-record').classList.remove('hidden');
         }
         function cameraImportDate(value, XLSX) {
@@ -2100,7 +2115,7 @@
                     const sn=String(row[cSn]??'').trim();
                     const dept=cDept>=0?String(row[cDept]??'').trim():'';
                     const pic=cPic>=0?String(row[cPic]??'').trim():'';
-                    imported.push({id:'CAM-IMPORT-'+Date.now()+'-'+r+'-'+imported.length,unit,date,model:'',sn,notes:[dept,pic].filter(Boolean).join(' | ')});
+                    imported.push({id:'CAM-IMPORT-'+Date.now()+'-'+r+'-'+imported.length,unit,date,model:'',sn,user:dept,recipient:pic,ket:'',notes:''});
                 }
                 if(!imported.length) throw new Error('Tidak ada baris data valid. Periksa isi UNIT dan TANGGAL.');
                 const ok=confirm('Ditemukan '+imported.length+' data kamera mundur. Semua data akan ditambahkan, termasuk unit yang berulang. Data lama tidak dihapus. Lanjutkan?');
@@ -2122,7 +2137,9 @@
             e.preventDefault();if(currentRole==='viewer')return;
             const kind=document.getElementById('camera-kind').value, reverse=kind==='reverse';
             const list=reverse?reverseCameras:dashcams, id=document.getElementById('camera-record-id').value;
-            const data={id:id||'CAM-'+Date.now(),unit:document.getElementById('camera-unit').value.trim(),date:document.getElementById('camera-date').value,model:document.getElementById('camera-model').value.trim(),sn:document.getElementById('camera-sn').value.trim(),notes:document.getElementById('camera-notes').value.trim()};
+            const notesValue=document.getElementById('camera-notes').value.trim();
+            const data={id:id||'CAM-'+Date.now(),unit:document.getElementById('camera-unit').value.trim(),date:document.getElementById('camera-date').value,model:document.getElementById('camera-model').value.trim(),sn:document.getElementById('camera-sn').value.trim(),notes:reverse?'':notesValue};
+            if(reverse)Object.assign(data,{user:document.getElementById('camera-user').value.trim(),recipient:document.getElementById('camera-recipient').value.trim(),ket:notesValue});
             if(!reverse)Object.assign(data,{sim:document.getElementById('camera-sim').value.trim(),condition:document.getElementById('camera-condition').value,memory:document.getElementById('camera-memory').value,network:document.getElementById('camera-network').value,autoRecord:document.getElementById('camera-auto-record').value});
             const index=list.findIndex(x=>x.id===id);if(index>=0)list[index]=data;else list.push(data);
             saveToLocalStorage();renderCameraTable();updateDashboard();closeModal('modal-camera-record');
