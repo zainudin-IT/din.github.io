@@ -2027,16 +2027,16 @@
             // Kamera Mundur tidak menggunakan kolom khusus Dashcam; sembunyikan agar tabel lebih ringkas.
             if (head) {
                 head.innerHTML = reverseOnly
-                    ? '<tr><th class="p-3">No</th><th class="p-3">No. Unit / Lambung</th><th class="p-3">Jenis Kamera</th><th class="p-3">Tanggal Pasang</th><th class="p-3">Serial Number</th><th class="p-3">PIC / Keterangan</th><th class="p-3 no-print">Aksi</th></tr>'
+                    ? '<tr><th class="p-3">No</th><th class="p-3">No. Unit / Lambung</th><th class="p-3">Tanggal Pasang</th><th class="p-3">Serial Number</th><th class="p-3">PIC / Keterangan</th><th class="p-3 no-print">Aksi</th></tr>'
                     : '<tr><th class="p-3">No</th><th class="p-3">No. Unit / Lambung</th><th class="p-3">Jenis Kamera</th><th class="p-3">Tanggal Pasang</th><th class="p-3">Merek / Tipe</th><th class="p-3">Serial Number / IMEI</th><th class="p-3">Nomor SIM</th><th class="p-3">Kondisi Kamera</th><th class="p-3">Kondisi Memori</th><th class="p-3">GPS & 4G</th><th class="p-3">Rekam Otomatis</th><th class="p-3">PIC / Keterangan</th><th class="p-3 no-print">Aksi</th></tr>';
             }
             body.innerHTML = rows.length ? rows.map((x,i) => {
-                const common = '<td class="p-3">'+(i+1)+'</td><td class="p-3 font-bold">'+cameraEscape(x.unit)+'</td><td class="p-3">'+x.cameraKindLabel+'</td><td class="p-3">'+formatDate(x.date)+'</td>';
                 if (reverseOnly) {
-                    return '<tr class="hover:bg-slate-50">'+common+'<td class="p-3 font-mono">'+cameraEscape(x.sn)+'</td><td class="p-3">'+cameraEscape(x.notes)+'</td>'+cameraAction(x.cameraKind,x.id)+'</tr>';
+                    return '<tr class="hover:bg-slate-50"><td class="p-3">'+(i+1)+'</td><td class="p-3 font-bold">'+cameraEscape(x.unit)+'</td><td class="p-3">'+formatDate(x.date)+'</td><td class="p-3 font-mono">'+cameraEscape(x.sn)+'</td><td class="p-3">'+cameraEscape(x.notes)+'</td>'+cameraAction(x.cameraKind,x.id)+'</tr>';
                 }
+                const common = '<td class="p-3">'+(i+1)+'</td><td class="p-3 font-bold">'+cameraEscape(x.unit)+'</td><td class="p-3">'+x.cameraKindLabel+'</td><td class="p-3">'+formatDate(x.date)+'</td>';
                 return '<tr class="hover:bg-slate-50">'+common+'<td class="p-3">'+cameraEscape(x.model)+'</td><td class="p-3 font-mono">'+cameraEscape(x.sn)+'</td><td class="p-3">'+(x.cameraKind==='dashcam'?cameraEscape(x.sim):'—')+'</td><td class="p-3">'+(x.cameraKind==='dashcam'?cameraEscape(x.condition):'—')+'</td><td class="p-3">'+(x.cameraKind==='dashcam'?cameraEscape(x.memory):'—')+'</td><td class="p-3">'+(x.cameraKind==='dashcam'?cameraEscape(x.network):'—')+'</td><td class="p-3">'+(x.cameraKind==='dashcam'?cameraEscape(x.autoRecord):'—')+'</td><td class="p-3">'+cameraEscape(x.notes)+'</td>'+cameraAction(x.cameraKind,x.id)+'</tr>';
-            }).join('') : '<tr><td colspan="'+(reverseOnly?7:13)+'" class="p-8 text-center text-slate-400">Belum ada data kamera.</td></tr>';
+            }).join('') : '<tr><td colspan="'+(reverseOnly?6:13)+'" class="p-8 text-center text-slate-400">Belum ada data kamera.</td></tr>';
             document.getElementById('camera-count').innerText = 'Menampilkan '+rows.length+' dari '+combined.length+' data kamera';
         }
         function openCameraModal(kind,id=null) {
